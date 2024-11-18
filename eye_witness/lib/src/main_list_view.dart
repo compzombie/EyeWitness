@@ -2,16 +2,12 @@
 import 'package:flutter/material.dart';
 import 'animated_red_button.dart';
 
-class MainAppBar extends StatelessWidget {
-  const MainAppBar({
-    super.key,
-  });
-
+class MainListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('My App'),
+        title: Text('Custom List View'),
         leading: Builder(
           builder: (context) {
             return IconButton(
@@ -56,8 +52,12 @@ class MainAppBar extends StatelessWidget {
           ],
         ),
       ),
-      body: Center(
-        child: AnimatedRedButton(),
+      body: ListView(
+        children: <Widget>[
+          ListTile(
+            title: Text('Item 1'),
+          ),
+        ],
       ),
     );
   }

@@ -46,7 +46,7 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
           ),
           child: Center(
             child: Text(
-              'Click Me',
+              'Press to Begin Recording',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 24,
