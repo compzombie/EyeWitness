@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 
 class AnimatedRedButton extends StatefulWidget {
+  const AnimatedRedButton({super.key});
+
   @override
   _AnimatedRedButtonState createState() => _AnimatedRedButtonState();
 }
@@ -44,7 +46,7 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
             color: Colors.red,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Center(
+          child: const Center(
             child: Text(
               'Press to Begin Recording',
               style: TextStyle(
