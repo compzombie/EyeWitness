@@ -22,19 +22,23 @@ class MyApp extends StatelessWidget {
       supportedLocales: const [
         Locale('en', ''), // English, no country code
       ],
-      builder: (context, child) {
-        return Stack(
-          children: [
-            const MainListView(
-              menuIconSize: 16.0, // Small and unobtrusive
-              menuFontSize: 16.0, // Small and unobtrusive
+      home: Builder(
+        builder: (BuildContext context) {
+          return Scaffold(
+            body: Stack(
+              children: [
+                const MainListView(
+                  menuIconSize: 16.0, // Small and unobtrusive
+                  menuFontSize: 16.0, // Small and unobtrusive
+                ),
+                Center(
+                  child: AnimatedRedButton(),
+                ),
+              ],
             ),
-            Center(
-              child: AnimatedRedButton(),
-            ),
-          ],
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'popup_widget.dart';
 
 class AnimatedRedButton extends StatefulWidget {
   const AnimatedRedButton({super.key});
@@ -30,10 +31,21 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
   }
 
   Future<void> _initializeCamera() async {
-    _cameras = await availableCameras();
-    if (_cameras.isNotEmpty) {
-      _cameraController = CameraController(_cameras[0], ResolutionPreset.high);
-      await _cameraController?.initialize();
+    try {
+      _cameras = await availableCameras();
+      if (_cameras.isNotEmpty) {
+        _cameraController = CameraController(_cameras[0], ResolutionPreset.high);
+        await _cameraController?.initialize();
+      } else {
+        _showNoCameraPopup(context);
+      }
+    } catch (e) {
+      if (e is CameraException) {
+        _showNoCameraPopup(context);
+      } else {
+        print('Unexpected error: $e');
+        rethrow;
+      }
     }
   }
 
@@ -52,9 +64,11 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
           _isRecording = true;
         });
       } catch (e) {
-        // Handle error
         print('Error starting video recording: $e');
+        _showNoCameraPopup(context);
       }
+    } else {
+      _showNoCameraPopup(context);
     }
   }
 
@@ -66,10 +80,27 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
           _isRecording = false;
         });
       } catch (e) {
-        // Handle error
         print('Error stopping video recording: $e');
       }
     }
+  }
+
+  void _showNoCameraPopup(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return PopupWidget(
+          title: 'Error',
+          bodyText: 'No cameras found',
+          onOk: () {
+            Navigator.of(context).pop();
+          },
+          onCancel: () {
+            Navigator.of(context).pop();
+          },
+        );
+      },
+    );
   }
 
   @override
