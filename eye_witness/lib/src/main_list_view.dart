@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'animated_red_button.dart';
+import 'popup_widget.dart';
 
 class MainListView extends StatefulWidget {
   final double menuIconSize;
@@ -16,14 +17,61 @@ class MainListView extends StatefulWidget {
 }
 
 class _MainListViewState extends State<MainListView> {
-  final Map<String, List<String>> _subItems = {
-    'General': ['Option 1', 'Option 2', 'Option 3'],
-    'Security': ['Option 1', 'Option 2', 'Option 3'],
-    'Local Storage': ['Option 1', 'Option 2', 'Option 3'],
-    'Cloud Storage': ['Option 1', 'Option 2', 'Option 3'],
+  final TextEditingController _textController = TextEditingController();
+  String? _selectedItem;
+
+  Map<String, List<Map<String, VoidCallback>>> get _subItems => {
+    'General': [
+      {'Identifying Information': () => _showPopup('Identifying Information', true)},
+      {'Emergency Contact': () => _showPopup('Emergency Contact', true)},
+      {'Local Resources': () => _showPopup('Local Resources', true)},
+    ],
+    'Security': [
+      {'Option 1': () => _showPopup('Security Option 1', false)},
+      {'Option 2': () => _showPopup('Security Option 2', false)},
+      {'Option 3': () => _showPopup('Security Option 3', false)},
+    ],
+    'Local Storage': [
+      {'Option 1': () => _showPopup('Local Storage Option 1', false)},
+      {'Option 2': () => _showPopup('Local Storage Option 2', false)},
+      {'Option 3': () => _showPopup('Local Storage Option 3', false)},
+    ],
+    'Cloud Storage': [
+      {'Option 1': () => _showPopup('Cloud Storage Option 1', false)},
+      {'Option 2': () => _showPopup('Cloud Storage Option 2', false)},
+      {'Option 3': () => _showPopup('Cloud Storage Option 3', false)},
+    ],
   };
 
-  String? _selectedItem;
+  void _showPopup(String title, bool includeForm) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return PopupWidget(
+          title: title,
+          bodyText: 'Please enter your $title',
+          textController: includeForm ? _textController : null,
+          formWidgets: includeForm
+              ? [
+                  TextField(
+                    controller: _textController,
+                    decoration: const InputDecoration(hintText: 'Enter your input here'),
+                  ),
+                ]
+              : null,
+          onOk: () {
+            setState(() {
+              _selectedItem = _textController.text;
+            });
+            Navigator.of(context).pop();
+          },
+          onCancel: () {
+            Navigator.of(context).pop();
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,12 +106,8 @@ class _MainListViewState extends State<MainListView> {
                 title: Text(key),
                 children: _subItems[key]!
                     .map((subItem) => ListTile(
-                          title: Text(subItem),
-                          onTap: () {
-                            setState(() {
-                              _selectedItem = subItem;
-                            });
-                          },
+                          title: Text(subItem.keys.first),
+                          onTap: subItem.values.first,
                         ))
                     .toList(),
               );

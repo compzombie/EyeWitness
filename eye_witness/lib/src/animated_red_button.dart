@@ -16,6 +16,7 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
   late List<CameraDescription> _cameras;
   bool _isRecording = false;
   bool _hasMicrophone = false;
+  final TextEditingController _textController = TextEditingController();
 
   @override
   void initState() {
@@ -39,11 +40,11 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
         _cameraController = CameraController(_cameras[0], ResolutionPreset.high);
         await _cameraController?.initialize();
       } else if (!_hasMicrophone) {
-        _showNoDevicesPopup(context);
+        _showNoDevicesPopup();
       }
     } catch (e) {
       if (e is CameraException) {
-        _showNoDevicesPopup(context);
+        _showNoDevicesPopup();
       } else {
         print('Unexpected error: $e');
         rethrow;
@@ -61,6 +62,7 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
   void dispose() {
     _controller.dispose();
     _cameraController?.dispose();
+    _textController.dispose();
     super.dispose();
   }
 
@@ -73,10 +75,10 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
         });
       } catch (e) {
         print('Error starting video recording: $e');
-        _showNoDevicesPopup(context);
+        _showNoDevicesPopup();
       }
     } else if (!_hasMicrophone) {
-      _showNoDevicesPopup(context);
+      _showNoDevicesPopup();
     }
   }
 
@@ -93,7 +95,7 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
     }
   }
 
-  void _showNoDevicesPopup(BuildContext context) {
+  void _showNoDevicesPopup() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -106,6 +108,7 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
           onCancel: () {
             Navigator.of(context).pop();
           },
+          textController: _textController,
         );
       },
     );

@@ -5,6 +5,8 @@ class PopupWidget extends StatelessWidget {
   final String bodyText;
   final VoidCallback onOk;
   final VoidCallback onCancel;
+  final TextEditingController? textController;
+  final List<Widget>? formWidgets;
 
   const PopupWidget({
     super.key,
@@ -12,13 +14,28 @@ class PopupWidget extends StatelessWidget {
     required this.bodyText,
     required this.onOk,
     required this.onCancel,
+    this.textController,
+    this.formWidgets,
   });
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(title),
-      content: Text(bodyText),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(bodyText),
+            if (formWidgets != null) ...formWidgets!,
+            if (textController != null)
+              TextField(
+                controller: textController,
+                decoration: const InputDecoration(hintText: 'Enter your input here'),
+              ),
+          ],
+        ),
+      ),
       actions: <Widget>[
         TextButton(
           onPressed: onCancel,
