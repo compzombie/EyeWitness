@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:camera/camera.dart';
 
 class AnimatedRedButton extends StatefulWidget {
   const AnimatedRedButton({super.key});
@@ -10,6 +11,9 @@ class AnimatedRedButton extends StatefulWidget {
 class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
+  CameraController? _cameraController;
+  late List<CameraDescription> _cameras;
+  bool _isRecording = false;
 
   @override
   void initState() {
@@ -22,20 +26,67 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
       ..addListener(() {
         setState(() {});
       });
+    _initializeCamera();
+  }
+
+  Future<void> _initializeCamera() async {
+    _cameras = await availableCameras();
+    if (_cameras.isNotEmpty) {
+      _cameraController = CameraController(_cameras[0], ResolutionPreset.high);
+      await _cameraController?.initialize();
+    }
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _cameraController?.dispose();
     super.dispose();
+  }
+
+  Future<void> _startRecording() async {
+    if (_cameraController != null && !_isRecording) {
+      try {
+        await _cameraController!.startVideoRecording();
+        setState(() {
+          _isRecording = true;
+        });
+      } catch (e) {
+        // Handle error
+        print('Error starting video recording: $e');
+      }
+    }
+  }
+
+  Future<void> _stopRecording() async {
+    if (_cameraController != null && _isRecording) {
+      try {
+        await _cameraController!.stopVideoRecording();
+        setState(() {
+          _isRecording = false;
+        });
+      } catch (e) {
+        // Handle error
+        print('Error stopping video recording: $e');
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
-      onTapUp: (_) => _controller.reverse(),
-      onTapCancel: () => _controller.reverse(),
+      onTapDown: (_) {
+        _controller.forward();
+        _startRecording();
+      },
+      onTapUp: (_) {
+        _controller.reverse();
+        _stopRecording();
+      },
+      onTapCancel: () {
+        _controller.reverse();
+        _stopRecording();
+      },
       child: Transform.scale(
         scale: _animation.value,
         child: Container(
@@ -59,5 +110,4 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
       ),
     );
   }
-
 }
