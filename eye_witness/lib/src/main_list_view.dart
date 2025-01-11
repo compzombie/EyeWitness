@@ -50,8 +50,7 @@ class _MainListViewState extends State<MainListView> {
         return PopupWidget(
           title: title,
           bodyText: 'Please enter your $title',
-          textController: includeForm ? _textController : null,
-          formWidgets: includeForm
+          children: includeForm
               ? [
                   TextField(
                     controller: _textController,

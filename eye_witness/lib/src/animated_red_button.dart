@@ -108,7 +108,6 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
           onCancel: () {
             Navigator.of(context).pop();
           },
-          textController: _textController,
         );
       },
     );

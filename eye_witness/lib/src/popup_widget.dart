@@ -5,8 +5,7 @@ class PopupWidget extends StatelessWidget {
   final String bodyText;
   final VoidCallback onOk;
   final VoidCallback onCancel;
-  final TextEditingController? textController;
-  final List<Widget>? formWidgets;
+  final List<Widget>? children;
 
   const PopupWidget({
     super.key,
@@ -14,8 +13,7 @@ class PopupWidget extends StatelessWidget {
     required this.bodyText,
     required this.onOk,
     required this.onCancel,
-    this.textController,
-    this.formWidgets,
+    this.children,
   });
 
   @override
@@ -27,12 +25,7 @@ class PopupWidget extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(bodyText),
-            if (formWidgets != null) ...formWidgets!,
-            if (textController != null)
-              TextField(
-                controller: textController,
-                decoration: const InputDecoration(hintText: 'Enter your input here'),
-              ),
+            if (children != null) ...children!,
           ],
         ),
       ),
