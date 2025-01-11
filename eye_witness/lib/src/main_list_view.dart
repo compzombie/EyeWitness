@@ -1,9 +1,15 @@
-
 import 'package:flutter/material.dart';
 import 'animated_red_button.dart';
 
 class MainListView extends StatelessWidget {
-  const MainListView({super.key});
+  final double menuIconSize;
+  final double menuFontSize;
+
+  const MainListView({
+    super.key,
+    this.menuIconSize = 24.0,
+    this.menuFontSize = 24.0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +19,7 @@ class MainListView extends StatelessWidget {
         leading: Builder(
           builder: (context) {
             return IconButton(
-              icon: const Icon(Icons.menu),
+              icon: Icon(Icons.menu, size: menuIconSize),
               onPressed: () {
                 Scaffold.of(context).openDrawer();
               },
@@ -25,15 +31,15 @@ class MainListView extends StatelessWidget {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
+            DrawerHeader(
+              decoration: const BoxDecoration(
                 color: Colors.blue,
               ),
               child: Text(
                 'Menu',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 24,
+                  fontSize: menuFontSize,
                 ),
               ),
             ),

@@ -23,11 +23,15 @@ class MyApp extends StatelessWidget {
         Locale('en', ''), // English, no country code
       ],
       builder: (context, child) {
-        //**attention: expand this return statement to include AnimatedRedButton */
-        return Column(
+        return Stack(
           children: [
-            Expanded(child: MainListView()),
-            AnimatedRedButton(),
+            const MainListView(
+              menuIconSize: 16.0, // Small and unobtrusive
+              menuFontSize: 16.0, // Small and unobtrusive
+            ),
+            Center(
+              child: AnimatedRedButton(),
+            ),
           ],
         );
       },
