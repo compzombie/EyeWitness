@@ -40,17 +40,17 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
         scale: _animation.value,
         child: Container(
           width: 200,
-          height: 100,
+          height: 200,
           decoration: BoxDecoration(
             color: Colors.red,
-            borderRadius: BorderRadius.circular(12),
+            shape: BoxShape.circle,
           ),
           child: const Center(
             child: Text(
-              'Press to Begin Recording',
+              'Emergency',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 24,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
