@@ -15,6 +15,7 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
   CameraController? _cameraController;
   late List<CameraDescription> _cameras;
   bool _isRecording = false;
+  bool _hasMicrophone = false;
 
   @override
   void initState() {
@@ -27,26 +28,33 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
       ..addListener(() {
         setState(() {});
       });
-    _initializeCamera();
+    _initializeDevices();
   }
 
-  Future<void> _initializeCamera() async {
+  Future<void> _initializeDevices() async {
     try {
       _cameras = await availableCameras();
+      _hasMicrophone = await _checkMicrophone();
       if (_cameras.isNotEmpty) {
         _cameraController = CameraController(_cameras[0], ResolutionPreset.high);
         await _cameraController?.initialize();
-      } else {
-        _showNoCameraPopup(context);
+      } else if (!_hasMicrophone) {
+        _showNoDevicesPopup(context);
       }
     } catch (e) {
       if (e is CameraException) {
-        _showNoCameraPopup(context);
+        _showNoDevicesPopup(context);
       } else {
         print('Unexpected error: $e');
         rethrow;
       }
     }
+  }
+
+  Future<bool> _checkMicrophone() async {
+    // Implement microphone check logic here
+    // For now, we assume the microphone is available
+    return true;
   }
 
   @override
@@ -65,10 +73,10 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
         });
       } catch (e) {
         print('Error starting video recording: $e');
-        _showNoCameraPopup(context);
+        _showNoDevicesPopup(context);
       }
-    } else {
-      _showNoCameraPopup(context);
+    } else if (!_hasMicrophone) {
+      _showNoDevicesPopup(context);
     }
   }
 
@@ -85,13 +93,13 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
     }
   }
 
-  void _showNoCameraPopup(BuildContext context) {
+  void _showNoDevicesPopup(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return PopupWidget(
           title: 'Error',
-          bodyText: 'No cameras found',
+          bodyText: 'No cameras or microphones found',
           onOk: () {
             Navigator.of(context).pop();
           },
