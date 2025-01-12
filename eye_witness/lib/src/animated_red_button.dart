@@ -47,7 +47,7 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
         _showNoDevicesPopup();
       } else {
         print('Unexpected error: $e');
-        rethrow;
+        _showNoDevicesPopup(); // Show popup for any unexpected errors
       }
     }
   }
@@ -133,7 +133,7 @@ class _AnimatedRedButtonState extends State<AnimatedRedButton> with SingleTicker
         child: Container(
           width: 200,
           height: 200,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.red,
             shape: BoxShape.circle,
           ),

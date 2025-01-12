@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'animated_red_button.dart';
 import 'popup_widget.dart';
 
 class MainListView extends StatefulWidget {
@@ -110,7 +109,7 @@ class _MainListViewState extends State<MainListView> {
                         ))
                     .toList(),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),

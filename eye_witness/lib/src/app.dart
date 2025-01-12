@@ -24,10 +24,10 @@ class MyApp extends StatelessWidget {
       ],
       home: Builder(
         builder: (BuildContext context) {
-          return Scaffold(
+          return const Scaffold(
             body: Stack(
               children: [
-                const MainListView(
+                MainListView(
                   menuIconSize: 16.0, // Small and unobtrusive
                   menuFontSize: 16.0, // Small and unobtrusive
                 ),
