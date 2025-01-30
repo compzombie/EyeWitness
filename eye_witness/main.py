@@ -21,10 +21,10 @@ async def home(request: Request):
 @app.post("/upload/")
 async def upload_video(file: UploadFile = File(...)):
     file_location = f"static/uploads/{file.filename}"
+    os.makedirs(os.path.dirname(file_location), exist_ok=True)
     with open(file_location, "wb") as buffer:
         buffer.write(await file.read())
     return {"filename": file.filename, "message": "Video uploaded successfully."}
 
 if __name__ == "__main__":
-    os.makedirs("static/uploads", exist_ok=True)
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8080)
