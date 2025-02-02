@@ -1,5 +1,5 @@
 # Use a lightweight Python base image
-FROM python:3.11-slim
+FROM python:3.9-slim
 
 # Create a working directory
 WORKDIR /app
@@ -11,15 +11,15 @@ RUN apt-get update && apt-get install -y \
     net-tools \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install
-COPY requirements.txt .
+# Copy requirements and install dependencies
+COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of your code
+# Copy the rest of the code
 COPY . .
 
-# Expose port 8080 (Cloud Run default)
+# Expose port 8080
 EXPOSE 8080
 
-# Start FastAPI using uvicorn, listening on port 8080
+# Start the FastAPI app via main.py (which uses uvicorn)
 CMD ["python", "main.py"]
