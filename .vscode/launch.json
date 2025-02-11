@@ -54,10 +54,32 @@
             ]
         },
         {
-            "name": "Launch Device Emulators",
+            "name": "Run PWA + Launch Device Emulators",
             "configurations": [
+                "Run FastAPI Server",
                 "Chrome - Older Android Emulator",
                 "Chrome - Newer Android Emulator"
+            ]
+        },
+        {
+            "name": "Chrome - Older Android Emulator + FastAPI",
+            "configurations": [
+                "Run FastAPI Server",
+                "Chrome - Older Android Emulator"
+            ]
+        },
+        {
+            "name": "Chrome - Newer Android Emulator + FastAPI",
+            "configurations": [
+                "Run FastAPI Server",
+                "Chrome - Newer Android Emulator"
+            ]
+        },
+        {
+            "name": "Edge Browser + FastAPI",
+            "configurations": [
+                "Run FastAPI Server",
+                "Edge Browser"
             ]
         }
     ]
