@@ -37,4 +37,10 @@ async def upload_video(file: UploadFile = File(...)):
     return {"filename": file.filename, "message": "Video uploaded successfully."}
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=8080,
+        ssl_certfile="ssl/server.crt",  # Path to your SSL certificate
+        ssl_keyfile="ssl/server.key"    # Path to your SSL key
+    )
