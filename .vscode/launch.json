@@ -43,6 +43,13 @@
             "request": "launch",
             "url": "http://localhost:8080",
             "webRoot": "${workspaceFolder}"
+        },
+        {
+            "name": "Firefox Browser",
+            "type": "pwa-firefox",
+            "request": "launch",
+            "url": "http://localhost:8080",
+            "webRoot": "${workspaceFolder}"
         }
     ],
     "compounds": [
@@ -80,6 +87,13 @@
             "configurations": [
                 "Run FastAPI Server",
                 "Edge Browser"
+            ]
+        },
+        {
+            "name": "Firefox Browser + FastAPI",
+            "configurations": [
+                "Run FastAPI Server",
+                "Firefox Browser"
             ]
         }
     ]
