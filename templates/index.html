@@ -8,12 +8,44 @@
   <script src="https://unpkg.com/htmx.org"></script>
   <!-- Tailwind CSS (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#111111">
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#111111" />
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col justify-center items-center p-4">
+  <!-- User Options Button -->
+  <!-- Added a temporary red border for debugging; remove "border border-red-500" once you confirm it’s visible -->
+  <div class="fixed top-4 left-4">
+    <div class="relative">
+      <button
+        id="userOptionsBtn"
+        class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-4 rounded"
+      >
+        Options
+      </button>
+      <ul
+        id="userOptionsMenu"
+        class="absolute left 50 mt-1 w-48 bg-white text-black rounded shadow-lg hidden"
+      >
+        <li
+          class="w-64 px-4 py-2 hover:bg-gray-200 cursor-pointer"
+          onclick="manageSaveLocations()"
+        >
+          Manage save locations
+        </li>
+        <li
+          class="w-64 px-4 py-2 hover:bg-gray-200 cursor-pointer"
+          onclick="showAdvice()"
+        >
+          Advice
+        </li>
+      </ul>
+    </div>
+  </div>
+
   <div class="max-w-md w-full">
-    <h1 class="text-3xl font-bold text-center mb-6">Record &amp; Upload Video</h1>
+    <h1 class="text-3xl font-bold text-center mb-6">
+      Record &amp; Upload Video
+    </h1>
 
     <!-- Video Preview -->
     <video
@@ -44,13 +76,34 @@
   </div>
 
   <script>
+    // Toggle user options dropdown
+    const userOptionsBtn = document.getElementById('userOptionsBtn');
+    const userOptionsMenu = document.getElementById('userOptionsMenu');
+
+    userOptionsBtn.addEventListener('click', () => {
+      userOptionsMenu.classList.toggle('hidden');
+    });
+
+    // Placeholder functions for options
+    function manageSaveLocations() {
+      alert('Manage save locations clicked.');
+      userOptionsMenu.classList.add('hidden');
+    }
+
+    function showAdvice() {
+      alert('Advice clicked.');
+      userOptionsMenu.classList.add('hidden');
+    }
+  </script>
+
+  <script>
+    // Service Worker registration
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service-worker.js')
         .then(() => console.log('Service Worker registered'))
         .catch(err => console.error('Service Worker registration failed:', err));
     }
   </script>
-  
 
   <script>
     let mediaRecorder;
@@ -99,9 +152,8 @@
       mediaRecorder.onstop = async () => {
         // Convert recorded chunks to Blob
         const blob = new Blob(recordedChunks, { type: 'video/webm' });
-        // Create a FormData to upload file
+        // Create FormData to upload file
         const formData = new FormData();
-        // Name your file with a timestamp
         const filename = `recording_${Date.now()}.webm`;
         formData.append('file', blob, filename);
 
@@ -111,7 +163,6 @@
             method: 'POST',
             body: formData,
           });
-
           const result = await response.json();
           console.log('Upload success:', result);
           alert(`Video uploaded successfully! Filename: ${result.filename}`);
