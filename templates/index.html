@@ -4,51 +4,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Encrypted Video PWA</title>
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS is still loaded (if needed for rapid prototyping) -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Custom CSS -->
-  <style>
-    /* Any additional custom styling can go here */
-  </style>
+  <!-- External CSS -->
+  <link rel="stylesheet" href="/static/css/style.css">
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col justify-center items-center p-4 relative">
+<body>
   <!-- User Options Button -->
-  <div class="fixed top-4 left-4 z-50">
-    <div class="relative">
-      <button
-        id="userOptionsBtn"
-        class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-4 rounded"
-      >
+  <div class="options-container">
+    <div class="options-inner">
+      <button id="userOptionsBtn" class="btn options-btn">
         Options
       </button>
-      <ul
-        id="userOptionsMenu"
-        class="absolute left mt-1 w-64 bg-white text-black rounded shadow-lg hidden"
-      >
-        <li
-          class="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-          onclick="manageSaveLocations()"
-        >
+      <ul id="userOptionsMenu" class="menu">
+        <li class="menu-item" onclick="manageSaveLocations()">
           Manage save locations
-          <ul id="saveLocationsSubmenu" class="hidden ml-4 mt-2 bg-gray-100 rounded shadow">
-            <li
-              class="px-4 py-2 hover:bg-gray-300 cursor-pointer"
-              onclick="setLocalPath()"
-            >
+          <ul id="saveLocationsSubmenu" class="submenu">
+            <li class="submenu-item" onclick="setLocalPath()">
               Local Path: <span id="localPathDisplay">/default/path</span>
             </li>
-            <li
-              class="px-4 py-2 hover:bg-gray-300 cursor-pointer"
-              onclick="setEmailPath()"
-            >
+            <li class="submenu-item" onclick="setEmailPath()">
               Email: <span id="emailDisplay">user@example.com</span>
             </li>
           </ul>
         </li>
-        <li
-          class="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-          onclick="showAdvice()"
-        >
+        <li class="menu-item" onclick="showAdvice()">
           Advice
         </li>
       </ul>
@@ -56,63 +36,45 @@
   </div>
 
   <!-- Main Content -->
-  <div class="max-w-md w-full mt-24 mx-auto">
-    <h1 class="text-3xl font-bold text-center mb-6">
-      Record &amp; Upload Video
-    </h1>
+  <div class="main-container">
+    <h1 class="main-title">Record &amp; Upload Video</h1>
 
     <!-- Video Preview -->
-    <video
-      id="videoPreview"
-      class="w-full h-auto rounded border border-gray-700 bg-black mb-4"
-      autoplay
-      muted
-    ></video>
+    <video id="videoPreview" class="video-preview" autoplay muted></video>
 
     <!-- Start Recording Button -->
-    <button
-      id="startBtn"
-      class="bg-blue-600 hover:bg-blue-700 font-semibold py-2 px-4 rounded w-full mb-2"
-      onclick="startRecording()"
-    >
+    <button id="startBtn" class="btn btn-start" onclick="startRecording()">
       Start Recording
     </button>
 
-    <!-- Stop & Upload Button -->
-    <button
-      id="stopBtn"
-      class="bg-red-600 hover:bg-red-700 font-semibold py-2 px-4 rounded w-full"
-      onclick="stopRecording()"
-      disabled
-    >
+    <!-- Stop &amp; Upload Button -->
+    <button id="stopBtn" class="btn btn-stop" onclick="stopRecording()" disabled>
       Stop &amp; Upload
     </button>
   </div>
 
   <!-- Hidden file explorer input -->
-  <input type="file" id="localPathInput" webkitdirectory directory multiple class="hidden" />
+  <input type="file" id="localPathInput" webkitdirectory directory multiple class="hidden">
 
   <!-- JavaScript -->
   <script>
-    // Wait for the DOM to be fully loaded
+    // DOMContentLoaded and Options functions remain unchanged
     document.addEventListener("DOMContentLoaded", () => {
-      // Setup Options dropdown toggle
       const userOptionsBtn = document.getElementById('userOptionsBtn');
       const userOptionsMenu = document.getElementById('userOptionsMenu');
       userOptionsBtn.addEventListener('click', () => {
-        userOptionsMenu.classList.toggle('hidden');
+        userOptionsMenu.classList.toggle('active');
       });
     });
 
-    // Options functions exposed globally
     window.manageSaveLocations = function() {
       const submenu = document.getElementById('saveLocationsSubmenu');
-      submenu.classList.toggle('hidden');
+      submenu.classList.toggle('active');
     }
 
     window.showAdvice = function() {
       alert('Advice clicked.');
-      document.getElementById('userOptionsMenu').classList.add('hidden');
+      document.getElementById('userOptionsMenu').classList.remove('active');
     }
 
     window.setLocalPath = function() {
@@ -124,7 +86,7 @@
       const newEmail = prompt("Enter your email address:", currentEmail);
       if (newEmail !== null && newEmail.trim() !== "") {
         document.getElementById('emailDisplay').textContent = newEmail.trim();
-        // Optionally: Post newEmail to the backend for persistence.
+// Optionally: Post newEmail to the backend for persistence.
       }
     }
 
