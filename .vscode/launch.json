@@ -83,13 +83,6 @@
             ]
         },
         {
-            "name": "Edge Browser + FastAPI",
-            "configurations": [
-                "Run FastAPI Server",
-                "Edge Browser"
-            ]
-        },
-        {
             "name": "Firefox Browser + FastAPI",
             "configurations": [
                 "Run FastAPI Server",
