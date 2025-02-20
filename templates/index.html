@@ -24,13 +24,19 @@
       </button>
       <ul
         id="userOptionsMenu"
-        class="absolute left 50 mt-1 w-48 bg-white text-black rounded shadow-lg hidden"
+        class="absolute left mt-1 w-48 bg-white text-black rounded shadow-lg hidden"
       >
         <li
           class="w-64 px-4 py-2 hover:bg-gray-200 cursor-pointer"
           onclick="manageSaveLocations()"
         >
           Manage save locations
+          <ul id="saveLocationsSubmenu" class="hidden ml-4 mt-2 bg-gray-100 rounded shadow">
+            <li class="px-4 py-2 hover:bg-gray-300 cursor-pointer">Local Path</li>
+            onclick="setLocalPath()"
+            <li class="px-4 py-2 hover:bg-gray-300 cursor-pointer">Email</li>
+            onclick="setEmailPath()"
+          </ul>
         </li>
         <li
           class="w-64 px-4 py-2 hover:bg-gray-200 cursor-pointer"
@@ -86,8 +92,8 @@
 
     // Placeholder functions for options
     function manageSaveLocations() {
-      alert('Manage save locations clicked.');
-      userOptionsMenu.classList.add('hidden');
+      const submenu = document.getElementById('saveLocationsSubmenu');
+      submenu.classList.toggle('hidden');
     }
 
     function showAdvice() {
