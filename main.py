@@ -4,9 +4,38 @@ from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 import uvicorn
 import os
+import json
+from pydantic import BaseModel
 
 # Initialize FastAPI app
 app = FastAPI()
+
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config", "config.json")
+os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+
+class LocalConfig(BaseModel):
+    localPath: str
+
+def read_config():
+    if os.path.exists(CONFIG_PATH):
+        with open(CONFIG_PATH, "r") as f:
+            return json.load(f)
+    return {}
+
+def write_config(data: dict):
+    with open(CONFIG_PATH, "w") as f:
+        json.dump(data, f)
+
+@app.get("/config/local")
+def get_local_config():
+    return read_config()
+
+@app.post("/config/local")
+def set_local_config(cfg: LocalConfig):
+    config = read_config()
+    config["localPath"] = cfg.localPath
+    write_config(config)
+    return {"status": "success", "localPath": cfg.localPath}
 
 # Setup static file serving and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")

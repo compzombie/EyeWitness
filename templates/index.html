@@ -32,10 +32,12 @@
         >
           Manage save locations
           <ul id="saveLocationsSubmenu" class="hidden ml-4 mt-2 bg-gray-100 rounded shadow">
-            <li class="px-4 py-2 hover:bg-gray-300 cursor-pointer">Local Path</li>
+            <li class="px-4 py-2 hover:bg-gray-300 cursor-pointer"
             onclick="setLocalPath()"
-            <li class="px-4 py-2 hover:bg-gray-300 cursor-pointer">Email</li>
+            >Local Path</li>
+            <li class="px-4 py-2 hover:bg-gray-300 cursor-pointer"
             onclick="setEmailPath()"
+            >Email</li>
           </ul>
         </li>
         <li
@@ -81,6 +83,9 @@
     </button>
   </div>
 
+  <!-- Hidden file explorer input -->
+  <input type="file" id="localPathInput" webkitdirectory directory multiple class="hidden" />
+
   <script>
     // Toggle user options dropdown
     const userOptionsBtn = document.getElementById('userOptionsBtn');
@@ -100,6 +105,34 @@
       alert('Advice clicked.');
       userOptionsMenu.classList.add('hidden');
     }
+
+    function setLocalPath() {
+      document.getElementById('localPathInput').click();
+    }
+
+    document.getElementById('localPathInput').addEventListener('change', async (event) => {
+      const files = event.target.files;
+      if (files.length > 0) {
+        // Extract directory name from first file’s webkitRelativePath:
+        const filePath = files[0].webkitRelativePath;
+        const directory = filePath.split('/')[0];
+        const localPath = directory;
+        try {
+          const response = await fetch('/config/local', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ localPath })
+          });
+          if (response.ok) {
+            alert('Local path saved: ' + localPath);
+          } else {
+            alert('Failed to save local path.');
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    });
   </script>
 
   <script>
