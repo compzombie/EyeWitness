@@ -13,7 +13,6 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col justify-center items-center p-4">
   <!-- User Options Button -->
-  <!-- Added a temporary red border for debugging; remove "border border-red-500" once you confirm it’s visible -->
   <div class="fixed top-4 left-4">
     <div class="relative">
       <button
@@ -24,24 +23,30 @@
       </button>
       <ul
         id="userOptionsMenu"
-        class="absolute left mt-1 w-48 bg-white text-black rounded shadow-lg hidden"
+        class="absolute left mt-1 w-64 bg-white text-black rounded shadow-lg hidden"
       >
         <li
-          class="w-64 px-4 py-2 hover:bg-gray-200 cursor-pointer"
+          class="px-4 py-2 hover:bg-gray-200 cursor-pointer"
           onclick="manageSaveLocations()"
         >
           Manage save locations
           <ul id="saveLocationsSubmenu" class="hidden ml-4 mt-2 bg-gray-100 rounded shadow">
-            <li class="px-4 py-2 hover:bg-gray-300 cursor-pointer"
-            onclick="setLocalPath()"
-            >Local Path</li>
-            <li class="px-4 py-2 hover:bg-gray-300 cursor-pointer"
-            onclick="setEmailPath()"
-            >Email</li>
+            <li
+              class="px-4 py-2 hover:bg-gray-300 cursor-pointer"
+              onclick="setLocalPath()"
+            >
+              Local Path: <span id="localPathDisplay">/default/path</span>
+            </li>
+            <li
+              class="px-4 py-2 hover:bg-gray-300 cursor-pointer"
+              onclick="setEmailPath()"
+            >
+              Email: <span id="emailDisplay">user@example.com</span>
+            </li>
           </ul>
         </li>
         <li
-          class="w-64 px-4 py-2 hover:bg-gray-200 cursor-pointer"
+          class="px-4 py-2 hover:bg-gray-200 cursor-pointer"
           onclick="showAdvice()"
         >
           Advice
@@ -90,7 +95,6 @@
     // Toggle user options dropdown
     const userOptionsBtn = document.getElementById('userOptionsBtn');
     const userOptionsMenu = document.getElementById('userOptionsMenu');
-
     userOptionsBtn.addEventListener('click', () => {
       userOptionsMenu.classList.toggle('hidden');
     });
@@ -110,6 +114,15 @@
       document.getElementById('localPathInput').click();
     }
 
+    function setEmailPath() {
+      let currentEmail = document.getElementById('emailDisplay').textContent;
+      const newEmail = prompt("Enter your email address:", currentEmail);
+      if (newEmail !== null && newEmail.trim() !== "") {
+        document.getElementById('emailDisplay').textContent = newEmail.trim();
+        // Optionally, send newEmail to your backend here for persistence.
+      }
+    }
+
     document.getElementById('localPathInput').addEventListener('change', async (event) => {
       const files = event.target.files;
       if (files.length > 0) {
@@ -125,6 +138,7 @@
           });
           if (response.ok) {
             alert('Local path saved: ' + localPath);
+            document.getElementById('localPathDisplay').textContent = localPath;
           } else {
             alert('Failed to save local path.');
           }
@@ -151,6 +165,10 @@
 
     // Enable camera on page load
     document.addEventListener("DOMContentLoaded", async () => {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error('Media Devices API or getUserMedia is not supported in this browser.');
+        return;
+      }
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: { ideal: 'environment' } },
@@ -165,8 +183,16 @@
     // Start recording
     async function startRecording() {
       if (!stream) {
-        alert("No camera stream available!");
-        return;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' } },
+            audio: true
+          });
+          document.getElementById('videoPreview').srcObject = stream;
+        } catch (err) {
+          alert("Camera access was denied or is unavailable!");
+          return;
+        }
       }
       recordedChunks = [];
       mediaRecorder = new MediaRecorder(stream, {
