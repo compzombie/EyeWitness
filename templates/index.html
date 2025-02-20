@@ -4,16 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Encrypted Video PWA</title>
-  <!-- HTMX -->
-  <script src="https://unpkg.com/htmx.org"></script>
-  <!-- Tailwind CSS (CDN) -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#111111" />
+  <!-- Custom CSS -->
+  <style>
+    /* Any additional custom styling can go here */
+  </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col justify-center items-center p-4">
+<body class="bg-gray-900 text-white min-h-screen flex flex-col justify-center items-center p-4 relative">
   <!-- User Options Button -->
-  <div class="fixed top-4 left-4">
+  <div class="fixed top-4 left-4 z-50">
     <div class="relative">
       <button
         id="userOptionsBtn"
@@ -55,7 +55,8 @@
     </div>
   </div>
 
-  <div class="max-w-md w-full">
+  <!-- Main Content -->
+  <div class="max-w-md w-full mt-24 mx-auto">
     <h1 class="text-3xl font-bold text-center mb-6">
       Record &amp; Upload Video
     </h1>
@@ -91,42 +92,46 @@
   <!-- Hidden file explorer input -->
   <input type="file" id="localPathInput" webkitdirectory directory multiple class="hidden" />
 
+  <!-- JavaScript -->
   <script>
-    // Toggle user options dropdown
-    const userOptionsBtn = document.getElementById('userOptionsBtn');
-    const userOptionsMenu = document.getElementById('userOptionsMenu');
-    userOptionsBtn.addEventListener('click', () => {
-      userOptionsMenu.classList.toggle('hidden');
+    // Wait for the DOM to be fully loaded
+    document.addEventListener("DOMContentLoaded", () => {
+      // Setup Options dropdown toggle
+      const userOptionsBtn = document.getElementById('userOptionsBtn');
+      const userOptionsMenu = document.getElementById('userOptionsMenu');
+      userOptionsBtn.addEventListener('click', () => {
+        userOptionsMenu.classList.toggle('hidden');
+      });
     });
 
-    // Placeholder functions for options
-    function manageSaveLocations() {
+    // Options functions exposed globally
+    window.manageSaveLocations = function() {
       const submenu = document.getElementById('saveLocationsSubmenu');
       submenu.classList.toggle('hidden');
     }
 
-    function showAdvice() {
+    window.showAdvice = function() {
       alert('Advice clicked.');
-      userOptionsMenu.classList.add('hidden');
+      document.getElementById('userOptionsMenu').classList.add('hidden');
     }
 
-    function setLocalPath() {
+    window.setLocalPath = function() {
       document.getElementById('localPathInput').click();
     }
 
-    function setEmailPath() {
-      let currentEmail = document.getElementById('emailDisplay').textContent;
+    window.setEmailPath = function() {
+      const currentEmail = document.getElementById('emailDisplay').textContent;
       const newEmail = prompt("Enter your email address:", currentEmail);
       if (newEmail !== null && newEmail.trim() !== "") {
         document.getElementById('emailDisplay').textContent = newEmail.trim();
-        // Optionally, send newEmail to your backend here for persistence.
+        // Optionally: Post newEmail to the backend for persistence.
       }
     }
 
+    // Update local path display when user selects a folder
     document.getElementById('localPathInput').addEventListener('change', async (event) => {
       const files = event.target.files;
       if (files.length > 0) {
-        // Extract directory name from first file’s webkitRelativePath:
         const filePath = files[0].webkitRelativePath;
         const directory = filePath.split('/')[0];
         const localPath = directory;
@@ -147,40 +152,19 @@
         }
       }
     });
-  </script>
 
-  <script>
     // Service Worker registration
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service-worker.js')
         .then(() => console.log('Service Worker registered'))
         .catch(err => console.error('Service Worker registration failed:', err));
     }
-  </script>
-
-  <script>
+    
+    // Camera, recording, and upload functionality
+    let stream = null;
     let mediaRecorder;
     let recordedChunks = [];
-    let stream = null;
-
-    // Enable camera on page load
-    document.addEventListener("DOMContentLoaded", async () => {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        console.error('Media Devices API or getUserMedia is not supported in this browser.');
-        return;
-      }
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' } },
-          audio: true
-        });
-        document.getElementById('videoPreview').srcObject = stream;
-      } catch (err) {
-        console.error('Camera access was denied:', err);
-      }
-    });
-
-    // Start recording
+    
     async function startRecording() {
       if (!stream) {
         try {
@@ -210,20 +194,16 @@
       document.getElementById('stopBtn').disabled = false;
     }
 
-    // Stop recording and upload
     async function stopRecording() {
       if (!mediaRecorder) return;
       mediaRecorder.stop();
       mediaRecorder.onstop = async () => {
-        // Convert recorded chunks to Blob
         const blob = new Blob(recordedChunks, { type: 'video/webm' });
-        // Create FormData to upload file
         const formData = new FormData();
         const filename = `recording_${Date.now()}.webm`;
         formData.append('file', blob, filename);
 
         try {
-          // POST to FastAPI endpoint
           const response = await fetch('/upload/', {
             method: 'POST',
             body: formData,
