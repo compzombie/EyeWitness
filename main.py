@@ -37,14 +37,13 @@ def set_local_config(cfg: LocalConfig):
     write_config(config)
     return {"status": "success", "localPath": cfg.localPath}
 
-# Setup static file serving and templates
+# Setup static file serving for assets (CSS, JS, etc.)
 app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
 
-# Serve Frontend
+# Serve Frontend: now serving /index.html from the static folder directly.
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return FileResponse("static/index.html")
 
 # Serve PWA manifest
 @app.get("/manifest.json", response_class=FileResponse)

@@ -1,9 +1,9 @@
 const CACHE_NAME = "pwa-cache-v3"; // bumped from v2
 const urlsToCache = [
   "/index.html", // explicitly cache index.html
-  "/",
+  "/",           // serve the root
   "/static/css/style.css",
-  "/static/js/main.js",
+  // Remove any reference to a potentially removed file, like main.js if not used.
   "/static/js/script.js",
   "/manifest.json"
 ];
@@ -15,12 +15,12 @@ self.addEventListener("install", (event) => {
   );
 });
 
-self.addEventListener("activate", event => {
+self.addEventListener("activate", (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    caches.keys().then(cacheNames => {
+    caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map(cacheName => {
+        cacheNames.map((cacheName) => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
             return caches.delete(cacheName);
           }
