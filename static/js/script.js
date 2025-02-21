@@ -1,12 +1,19 @@
-// DOMContentLoaded handler to set up event listeners
-document.addEventListener("DOMContentLoaded", () => {
+// Variables for the recording logic and options dropdown
+let mediaRecorder;
+let recordedChunks = [];
+let stream = null;
+
+// DOMContentLoaded handler for initial setup and event binding.
+document.addEventListener("DOMContentLoaded", async () => {
   // Options button dropdown toggle
   const userOptionsBtn = document.getElementById('userOptionsBtn');
   const userOptionsMenu = document.getElementById('userOptionsMenu');
-  userOptionsBtn.addEventListener('click', () => {
-      userOptionsMenu.classList.toggle('active');
-  });
   
+  userOptionsBtn.addEventListener('click', () => {
+    console.log("Options button clicked");
+    userOptionsMenu.classList.toggle('active');
+  });
+
   // File input event listener to update local path
   document.getElementById('localPathInput').addEventListener('change', async (event) => {
     const files = event.target.files;
@@ -31,7 +38,18 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
-  
+
+  // Automatically enable the camera when the DOM loads
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }},
+      audio: true
+    });
+    document.getElementById('videoPreview').srcObject = stream;
+  } catch (err) {
+    console.error('Camera access was denied:', err);
+  }
+
   // Service Worker registration
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/service-worker.js')
@@ -40,7 +58,68 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Global functions for Options
+document.addEventListener('DOMContentLoaded', function() {
+    const userOptionsBtn = document.getElementById('userOptionsBtn');
+    const userOptionsMenu = document.getElementById('userOptionsMenu');
+
+    userOptionsBtn.addEventListener('click', function() {
+        // Toggle the display style between 'block' and 'none'
+        if (userOptionsMenu.style.display === 'block') {
+            userOptionsMenu.style.display = 'none';
+        } else {
+            userOptionsMenu.style.display = 'block';
+        }
+    });
+});
+
+// Start recording using the global "stream" variable
+async function startRecording() {
+  if (!stream) {
+    alert("No camera stream available!");
+    return;
+  }
+  recordedChunks = [];
+  mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });
+  mediaRecorder.ondataavailable = event => {
+    if (event.data.size > 0) {
+      recordedChunks.push(event.data);
+    }
+  };
+  mediaRecorder.start();
+
+  // Update button states
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('stopBtn').disabled = false;
+}
+
+// Stop recording and upload the recorded video
+async function stopRecording() {
+  if (!mediaRecorder) return;
+  mediaRecorder.stop();
+  mediaRecorder.onstop = async () => {
+    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    const formData = new FormData();
+    const filename = `recording_${Date.now()}.webm`;
+    formData.append('file', blob, filename);
+    try {
+      const response = await fetch('/upload/', {
+        method: 'POST',
+        body: formData,
+      });
+      const result = await response.json();
+      console.log('Upload success:', result);
+      alert(`Video uploaded successfully! Filename: ${result.filename}`);
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Failed to upload video.');
+    }
+    // Reset button states
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('stopBtn').disabled = true;
+  };
+}
+
+// Option Menu methods exposed globally if needed
 window.manageSaveLocations = function() {
   const submenu = document.getElementById('saveLocationsSubmenu');
   submenu.classList.toggle('active');
@@ -60,66 +139,5 @@ window.setEmailPath = function() {
   const newEmail = prompt("Enter your email address:", currentEmail);
   if (newEmail !== null && newEmail.trim() !== "") {
     document.getElementById('emailDisplay').textContent = newEmail.trim();
-    // Optionally: post newEmail to your backend for persistence.
   }
-}
-
-// Camera, recording, and upload functionality
-let stream = null;
-let mediaRecorder;
-let recordedChunks = [];
-
-async function startRecording() {
-  if (!stream) {
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' } },
-        audio: true
-      });
-      document.getElementById('videoPreview').srcObject = stream;
-    } catch (err) {
-      alert("Camera access was denied or is unavailable!");
-      return;
-    }
-  }
-  recordedChunks = [];
-  mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });
-  mediaRecorder.ondataavailable = event => {
-    if (event.data.size > 0) {
-      recordedChunks.push(event.data);
-    }
-  };
-  mediaRecorder.start();
-
-  // Update button states
-  document.getElementById('startBtn').disabled = true;
-  document.getElementById('stopBtn').disabled = false;
-}
-
-async function stopRecording() {
-  if (!mediaRecorder) return;
-  mediaRecorder.stop();
-  mediaRecorder.onstop = async () => {
-    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-    const formData = new FormData();
-    const filename = `recording_${Date.now()}.webm`;
-    formData.append('file', blob, filename);
-
-    try {
-      const response = await fetch('/upload/', {
-        method: 'POST',
-        body: formData
-      });
-      const result = await response.json();
-      console.log('Upload success:', result);
-      alert(`Video uploaded successfully! Filename: ${result.filename}`);
-    } catch (error) {
-      console.error('Upload error:', error);
-      alert('Failed to upload video.');
-    }
-
-    // Reset button states
-    document.getElementById('startBtn').disabled = false;
-    document.getElementById('stopBtn').disabled = true;
-  };
 }

@@ -54,89 +54,8 @@
   <!-- Hidden file explorer input -->
   <input type="file" id="localPathInput" webkitdirectory directory multiple class="hidden">
 
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(() => console.log('Service Worker registered'))
-        .catch(err => console.error('Service Worker registration failed:', err));
-    }
-  </script>
-  
 
-  <script>
-    let mediaRecorder;
-    let recordedChunks = [];
-    let stream = null;
 
-    // Enable camera on page load
-    document.addEventListener("DOMContentLoaded", async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' } },
-          audio: true
-        });
-        document.getElementById('videoPreview').srcObject = stream;
-      } catch (err) {
-        console.error('Camera access was denied:', err);
-      }
-    });
-
-    // Start recording
-    async function startRecording() {
-      if (!stream) {
-        alert("No camera stream available!");
-        return;
-      }
-      recordedChunks = [];
-      mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm; codecs=vp9'
-      });
-      mediaRecorder.ondataavailable = event => {
-        if (event.data.size > 0) {
-          recordedChunks.push(event.data);
-        }
-      };
-      mediaRecorder.start();
-
-      // Update button states
-      document.getElementById('startBtn').disabled = true;
-      document.getElementById('stopBtn').disabled = false;
-    }
-
-    // Stop recording and upload
-    async function stopRecording() {
-      if (!mediaRecorder) return;
-      mediaRecorder.stop();
-      mediaRecorder.onstop = async () => {
-        // Convert recorded chunks to Blob
-        const blob = new Blob(recordedChunks, { type: 'video/webm' });
-        // Create a FormData to upload file
-        const formData = new FormData();
-        // Name your file with a timestamp
-        const filename = `recording_${Date.now()}.webm`;
-        formData.append('file', blob, filename);
-
-        try {
-          // POST to FastAPI endpoint
-          const response = await fetch('/upload/', {
-            method: 'POST',
-            body: formData,
-          });
-
-          const result = await response.json();
-          console.log('Upload success:', result);
-          alert(`Video uploaded successfully! Filename: ${result.filename}`);
-        } catch (error) {
-          console.error('Upload error:', error);
-          alert('Failed to upload video.');
-        }
-
-        // Reset button states
-        document.getElementById('startBtn').disabled = false;
-        document.getElementById('stopBtn').disabled = true;
-      };
-    }
-  </script>
   <!-- Import external JavaScript -->
   <script src="/static/js/script.js"></script>
 </body>
