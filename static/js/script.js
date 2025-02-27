@@ -128,8 +128,30 @@ window.showAdvice = function() {
   document.getElementById('userOptionsMenu').classList.remove('active');
 }
 
-window.setLocalPath = function() {
-  document.getElementById('localPathInput').click();
+window.setLocalPath = async function() {
+  if ("showDirectoryPicker" in window) { // using File System Access API
+    try {
+      const directoryHandle = await window.showDirectoryPicker();
+      // For simplicity, use the directory handle's name as the localPath placeholder
+      const localPath = directoryHandle.name;
+      document.getElementById('localPathDisplay').textContent = localPath;
+      const response = await fetch('/config/local', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ localPath })
+      });
+      if (response.ok) {
+        alert('Local path saved: ' + localPath);
+      } else {
+        alert('Failed to save local path.');
+      }
+    } catch (err) {
+      console.error('Directory selection was cancelled or failed', err);
+    }
+  } else {
+    // Fallback for browsers without showDirectoryPicker support:
+    document.getElementById('localPathInput').click();
+  }
 }
 
 window.setEmailPath = function() {
