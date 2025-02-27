@@ -168,10 +168,27 @@ window.setLocalPath = async function() {
   }
 }
 
-window.setEmailPath = function() {
+window.setEmailPath = async function() {
   const currentEmail = document.getElementById('emailDisplay').textContent;
   const newEmail = prompt("Enter your email address:", currentEmail);
   if (newEmail !== null && newEmail.trim() !== "") {
-    document.getElementById('emailDisplay').textContent = newEmail.trim();
+    const email = newEmail.trim();
+    document.getElementById('emailDisplay').textContent = email;
+    // Preserve the current localPath value so we don't override it
+    const localPath = document.getElementById('localPathDisplay').textContent;
+    try {
+      const response = await fetch('/config/local', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ localPath, email })
+      });
+      if (response.ok) {
+         alert('Email saved: ' + email);
+      } else {
+         alert('Failed to save email.');
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
 }

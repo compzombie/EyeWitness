@@ -6,6 +6,7 @@ import uvicorn
 import os
 import json
 from pydantic import BaseModel
+from typing import Optional  # new import
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -13,8 +14,9 @@ app = FastAPI()
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config", "config.json")
 os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
 
-class LocalConfig(BaseModel):
-    localPath: str
+class Config(BaseModel):
+    localPath: Optional[str] = None
+    email: Optional[str] = None
 
 def read_config():
     if os.path.exists(CONFIG_PATH):
@@ -31,11 +33,14 @@ def get_local_config():
     return read_config()
 
 @app.post("/config/local")
-def set_local_config(cfg: LocalConfig):
+def set_local_config(cfg: Config):
     config = read_config()
-    config["localPath"] = cfg.localPath
+    if cfg.localPath is not None:
+        config["localPath"] = cfg.localPath
+    if cfg.email is not None:
+        config["email"] = cfg.email
     write_config(config)
-    return {"status": "success", "localPath": cfg.localPath}
+    return {"status": "success", "localPath": config.get("localPath", ""), "email": config.get("email", "")}
 
 # Setup static file serving for assets (CSS, JS, etc.)
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -56,8 +61,8 @@ async def service_worker():
     return FileResponse("static/service-worker.js")
 
 # Video Save Endpoint
-@app.post("/upload/")
-async def upload_video(file: UploadFile = File(...)):
+@app.post("/save/")
+async def save_video(file: UploadFile = File(...)):
     # Read configured path, defaulting to "static/uploads"
     config = read_config()
     save_dir = config.get("localPath", "static/uploads")
