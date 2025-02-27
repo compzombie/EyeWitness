@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const userOptionsMenu = document.getElementById('userOptionsMenu');
   
   userOptionsBtn.addEventListener('click', () => {
-    console.log("Options button clicked");
     userOptionsMenu.classList.toggle('active');
   });
 
@@ -92,7 +91,7 @@ async function startRecording() {
   document.getElementById('stopBtn').disabled = false;
 }
 
-// Stop recording and upload the recorded video
+// Stop recording and save the recorded video
 async function stopRecording() {
   if (!mediaRecorder) return;
   mediaRecorder.stop();
@@ -102,16 +101,15 @@ async function stopRecording() {
     const filename = `recording_${Date.now()}.webm`;
     formData.append('file', blob, filename);
     try {
-      const response = await fetch('/upload/', {
+      const response = await fetch('/save/', { // updated endpoint URL
         method: 'POST',
         body: formData,
       });
       const result = await response.json();
-      console.log('Upload success:', result);
-      alert(`Video uploaded successfully! Filename: ${result.filename}`);
+      alert(`Video saved successfully!\nFilename: ${result.filename}\nSaved to: ${result.saveLocation}`);
     } catch (error) {
-      console.error('Upload error:', error);
-      alert('Failed to upload video.');
+      console.error('Save error:', error);
+      alert('Failed to save video.');
     }
     // Reset button states
     document.getElementById('startBtn').disabled = false;

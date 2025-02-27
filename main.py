@@ -55,14 +55,17 @@ async def manifest():
 async def service_worker():
     return FileResponse("static/service-worker.js")
 
-# Video Upload Endpoint
+# Video Save Endpoint
 @app.post("/upload/")
 async def upload_video(file: UploadFile = File(...)):
-    file_location = f"static/uploads/{file.filename}"
+    # Read configured path, defaulting to "static/uploads"
+    config = read_config()
+    save_dir = config.get("localPath", "static/uploads")
+    file_location = os.path.join(save_dir, file.filename)
     os.makedirs(os.path.dirname(file_location), exist_ok=True)
     with open(file_location, "wb") as buffer:
         buffer.write(await file.read())
-    return {"filename": file.filename, "message": "Video uploaded successfully."}
+    return {"filename": file.filename, "message": "Video saved successfully.", "saveLocation": file_location}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)
