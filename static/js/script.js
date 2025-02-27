@@ -53,14 +53,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Automatically enable the camera when the DOM loads
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }},
-      audio: true
-    });
-    document.getElementById('videoPreview').srcObject = stream;
-  } catch (err) {
-    console.error('Camera access was denied:', err);
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }},
+        audio: true
+      });
+      document.getElementById('videoPreview').srcObject = stream;
+    } catch (err) {
+      console.error('Camera access was denied:', err);
+    }
+  } else {
+    console.error('Media Devices API or getUserMedia is not supported.');
+    alert('Your device does not support camera access via getUserMedia.');
   }
 
   // Service Worker registration
@@ -143,10 +148,12 @@ window.showAdvice = function() {
 }
 
 window.setLocalPath = async function() {
-  if ("showDirectoryPicker" in window) { // using File System Access API
+  // Check if the File System Access API is available and if not, assume mobile fallback
+  if ("showDirectoryPicker" in window && !/Mobi|Android/i.test(navigator.userAgent)) {
     try {
       const directoryHandle = await window.showDirectoryPicker();
-      // For simplicity, use the directory handle's name as the localPath placeholder
+      // Note: For security reasons, a full absolute path isn’t provided.
+      // Use the directory name as a hint if needed
       const localPath = directoryHandle.name;
       document.getElementById('localPathDisplay').textContent = localPath;
       const response = await fetch('/config/local', {
@@ -163,8 +170,23 @@ window.setLocalPath = async function() {
       console.error('Directory selection was cancelled or failed', err);
     }
   } else {
-    // Fallback for browsers without showDirectoryPicker support:
-    document.getElementById('localPathInput').click();
+    // For mobile devices (or if API unsupported), fall back to the default folder
+    const defaultPath = "static/uploads";
+    alert("Your device doesn't support directory selection. Using default folder: " + defaultPath);
+    document.getElementById('localPathDisplay').textContent = defaultPath;
+    // Optionally, update the config on the server with the default value
+    try {
+      const response = await fetch('/config/local', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ localPath: defaultPath })
+      });
+      if (!response.ok) {
+         alert('Failed to save local path.');
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
 }
 
