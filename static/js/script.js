@@ -54,14 +54,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Automatically enable the camera when the DOM loads
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    console.log("getUserMedia supported. Attempting to get camera stream...");
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' }},
-        audio: true
-      });
+      stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       document.getElementById('videoPreview').srcObject = stream;
+      console.log("Camera stream obtained.");
     } catch (err) {
-      console.error('Camera access was denied:', err);
+      console.error('Camera access was denied or failed:', err);
+      alert("Failed to access camera. Check your device permissions.");
     }
   } else {
     console.error('Media Devices API or getUserMedia is not supported.');
