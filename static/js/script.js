@@ -5,6 +5,20 @@ let stream = null;
 
 // DOMContentLoaded handler for initial setup and event binding.
 document.addEventListener("DOMContentLoaded", async () => {
+  // Fetch config on page load and update display fields
+  try {
+    const res = await fetch('/config/local');
+    const config = await res.json();
+    if (config.localPath) {
+      document.getElementById('localPathDisplay').textContent = config.localPath;
+    }
+    if (config.email) {
+      document.getElementById('emailDisplay').textContent = config.email;
+    }
+  } catch (err) {
+    console.error("Failed to load config:", err);
+  }
+  
   // Options button dropdown toggle
   const userOptionsBtn = document.getElementById('userOptionsBtn');
   const userOptionsMenu = document.getElementById('userOptionsMenu');
