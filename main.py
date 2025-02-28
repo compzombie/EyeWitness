@@ -76,23 +76,31 @@ async def get_video(filename: str):
         filename=filename
     )
 
-# Simplified save endpoint that also returns sharing URL
+# Simplified save endpoint for better mobile compatibility
 @app.post("/save/")
 async def save_video(file: UploadFile = File(...)):
-    # Read configured path, defaulting to "static/uploads"
-    config = read_config()
-    save_dir = config.get("localPath", "static/uploads")
-    file_location = os.path.join(save_dir, file.filename)
-    os.makedirs(os.path.dirname(file_location), exist_ok=True)
-    
-    with open(file_location, "wb") as buffer:
-        buffer.write(await file.read())
-    
-    return {
-        "filename": file.filename, 
-        "message": "Video saved successfully.", 
-        "saveLocation": file_location,
-    }
+    try:
+        # Create uploads directory if it doesn't exist
+        os.makedirs("static/uploads", exist_ok=True)
+        
+        # Save file to a consistent location that the app can access
+        file_location = os.path.join("static/uploads", file.filename)
+        
+        with open(file_location, "wb") as buffer:
+            buffer.write(await file.read())
+        
+        # Generate a URL for downloading the video
+        download_url = f"/videos/{file.filename}"
+        
+        return {
+            "filename": file.filename,
+            "message": "Video saved successfully.",
+            "saveLocation": file_location,
+            "downloadUrl": download_url
+        }
+    except Exception as e:
+        print(f"Error saving video: {str(e)}")
+        return {"error": str(e)}
 
 if __name__ == "__main__":
     # Get the PORT from environment variable for Google Cloud Run compatibility

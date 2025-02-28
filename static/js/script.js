@@ -117,74 +117,65 @@ async function startRecording() {
   document.getElementById('stopBtn').disabled = false;
 }
 
-// Modified stopRecording function to prioritize file sharing and local access
+// Modified stopRecording function with simpler mobile-first approach
 async function stopRecording() {
   if (!mediaRecorder) return;
   mediaRecorder.stop();
   mediaRecorder.onstop = async () => {
-    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-    const timestamp = Date.now();
-    const filename = `recording_${timestamp}.webm`;
-    
-    // Create a File object from the blob for sharing
-    const videoFile = new File([blob], filename, { type: 'video/webm' });
-    
-    // Create form data for saving the video
-    const formData = new FormData();
-    formData.append('file', blob, filename);
-    
     try {
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const filename = `recording_${Date.now()}.webm`;
+      
+      // Create a File object from the blob for sharing
+      const videoFile = new File([blob], filename, { type: 'video/webm' });
+      
+      // Create form data for saving the video
+      const formData = new FormData();
+      formData.append('file', blob, filename);
+      
+      // First try to save the file on the server
       const response = await fetch('/save/', {
         method: 'POST',
         body: formData,
       });
       const result = await response.json();
       
-      // Get local path to include in the message
-      const config = await fetch('/config/local').then(res => res.json());
-      const localPath = config.localPath || "static/uploads";
+      if (result.error) {
+        throw new Error(result.error);
+      }
       
-      // Show success message with LOCAL file path for offline access
-      alert(`Video saved successfully!\nFilename: ${result.filename}\nLocal storage location: ${localPath}/${filename}\n\nYou can find this video in your local storage if sharing fails.`);
+      console.log('Video saved successfully on server:', result);
       
-      // Try to share the file using the Web Share API
+      // Try to share using native sharing
       if (navigator.canShare && navigator.canShare({ files: [videoFile] })) {
         try {
           await navigator.share({
-            title: 'EyeWitness Video Recording',
-            text: 'Video recording from EyeWitness app',
-            files: [videoFile]
+            files: [videoFile],
+            title: 'EyeWitness Recording',
+            text: 'Video recording from EyeWitness app'
           });
-          console.log('Video file shared successfully');
+          alert('Video shared successfully!');
         } catch (shareError) {
-          console.error('Error sharing video file:', shareError);
-          alert('Sharing failed. Your video is still saved locally at:\n' + 
-                `${localPath}/${filename}`);
+          console.error('Error sharing:', shareError);
+          
+          // If share fails, try to download the file directly
+          const downloadLink = document.createElement('a');
+          downloadLink.href = URL.createObjectURL(blob);
+          downloadLink.download = filename;
+          downloadLink.click();
+          alert('Video saved to your downloads.');
         }
       } else {
-        // Web Share API with file not supported
-        console.log('File sharing not supported');
-        alert('This device cannot directly share files. Your video is saved locally at:\n' + 
-              `${localPath}/${filename}`);
-              
-        // On supported devices, try to share url as fallback
-        if (navigator.share) {
-          if (confirm('Would you like to try sharing a link to the video instead?')) {
-            try {
-              await navigator.share({
-                title: 'EyeWitness Video Recording',
-                text: 'Video recording from EyeWitness app',
-                url: result.shareUrl
-              });
-            } catch (urlShareError) {
-              console.error('URL sharing failed:', urlShareError);
-            }
-          }
-        }
+        // If share API not available, use download
+        const downloadLink = document.createElement('a');
+        downloadLink.href = URL.createObjectURL(blob);
+        downloadLink.download = filename;
+        downloadLink.click();
+        alert('Video saved to your downloads.');
       }
     } catch (error) {
-      console.error('Error saving video:', error);
-      alert('Failed to save video to server, but it may be available in memory. Please try again.');
+      console.error('Error processing video:', error);
+      alert('Error: ' + error.message);
     }
     
     // Reset button states
@@ -243,46 +234,25 @@ window.showAdvice = function() {
   document.getElementById('userOptionsMenu').classList.remove('active');
 }
 
+// Simplify local path setting for mobile
 window.setLocalPath = async function() {
-  // Check if the File System Access API is available and if not, assume mobile fallback
-  if ("showDirectoryPicker" in window && !/Mobi|Android/i.test(navigator.userAgent)) {
-    try {
-      const directoryHandle = await window.showDirectoryPicker();
-      // Note: For security reasons, a full absolute path isn’t provided.
-      // Use the directory name as a hint if needed
-      const localPath = directoryHandle.name;
-      document.getElementById('localPathDisplay').textContent = localPath;
-      const response = await fetch('/config/local', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ localPath })
-      });
-      if (response.ok) {
-        alert('Local path saved: ' + localPath);
-      } else {
-        alert('Failed to save local path.');
-      }
-    } catch (err) {
-      console.error('Directory selection was cancelled or failed', err);
+  // Mobile devices can't really select directories, so just use the default
+  const defaultPath = "static/uploads";
+  document.getElementById('localPathDisplay').textContent = defaultPath;
+  
+  try {
+    const response = await fetch('/config/local', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ localPath: defaultPath })
+    });
+    if (response.ok) {
+      alert('Using default storage location: ' + defaultPath);
+    } else {
+      alert('Failed to set storage location.');
     }
-  } else {
-    // For mobile devices (or if API unsupported), fall back to the default folder
-    const defaultPath = "static/uploads";
-    alert("Your device doesn't support directory selection. Using default folder: " + defaultPath);
-    document.getElementById('localPathDisplay').textContent = defaultPath;
-    // Optionally, update the config on the server with the default value
-    try {
-      const response = await fetch('/config/local', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ localPath: defaultPath })
-      });
-      if (!response.ok) {
-         alert('Failed to save local path.');
-      }
-    } catch (err) {
-      console.error(err);
-    }
+  } catch (err) {
+    console.error(err);
   }
 }
 
