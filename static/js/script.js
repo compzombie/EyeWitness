@@ -5,28 +5,12 @@ let stream = null;
 
 // DOMContentLoaded handler for initial setup and event binding.
 document.addEventListener("DOMContentLoaded", async () => {
-  // Fetch config on page load and update display fields
-  try {
-    const res = await fetch('/config/local');
-    const config = await res.json();
-    if (config.localPath) {
-      document.getElementById('localPathDisplay').textContent = config.localPath;
-    }
-    if (config.email) {
-      document.getElementById('emailDisplay').textContent = config.email;
-    }
-    // Check if SMTP is configured
-    if (!config.smtp_server || !config.smtp_port || !config.smtp_user || !config.smtp_password) {
-      promptForSMTPSettings();
-    }
-  } catch (err) {
-    console.error("Failed to load config:", err);
-  }
-  
   // Advice button event handler - simplified from previous options menu
   const adviceBtn = document.getElementById('adviceBtn');
   if (adviceBtn) {
-    adviceBtn.addEventListener('click', showAdvice);
+    adviceBtn.addEventListener('click', function() {
+      showAdvice();
+    });
   }
 
   // Automatically enable the camera when the DOM loads
@@ -200,11 +184,6 @@ function handleEmailFallback(shareUrl) {
 window.manageSaveLocations = function() {
   const submenu = document.getElementById('saveLocationsSubmenu');
   submenu.classList.toggle('active');
-}
-
-window.showAdvice = function() {
-  alert('Advice clicked.');
-  document.getElementById('userOptionsMenu').classList.remove('active');
 }
 
 // Simplify local path setting for mobile

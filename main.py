@@ -15,6 +15,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def home(request: Request):
     return FileResponse("static/index.html")
 
+# Add a redirect for /index.html to the root path
+@app.get("/index.html", response_class=HTMLResponse)
+async def index_redirect(request: Request):
+    return FileResponse("static/index.html")
+
 # Serve PWA manifest
 @app.get("/manifest.json", response_class=FileResponse)
 async def manifest():

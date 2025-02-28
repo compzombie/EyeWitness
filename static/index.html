@@ -4,60 +4,53 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/png" href="/static/icons/eye.png">
-  <title>Encrypted Video PWA</title>
+  <title>EyeWitness</title>
   <!-- HTMX -->
   <script src="https://unpkg.com/htmx.org"></script>
   <!-- Tailwind CSS (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#111111">
+  <meta name="theme-color" content="#4a5568">
   <!-- External CSS -->
   <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="apple-touch-icon" href="/static/images/icon-192x192.png">
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col justify-center items-center p-4">
   <!-- User Options Button -->
   <div class="options-container">
     <div class="options-inner">
-      <button id="userOptionsBtn" class="btn options-btn">
-        Options
+      <button id="adviceBtn" class="btn options-btn">
+        Advice
       </button>
-      <ul id="userOptionsMenu" class="menu">
-        <li class="menu-item" onclick="manageSaveLocations()">
-          Manage save locations
-          <ul id="saveLocationsSubmenu" class="submenu">
-            <li class="submenu-item" onclick="setLocalPath()">
-              Local Path: <span id="localPathDisplay">/default/path</span>
-            </li>
-            <li class="submenu-item" onclick="setEmailPath()">
-              Email: <span id="emailDisplay">user@example.com</span>
-            </li>
-          </ul>
-        </li>
-        <li class="menu-item" onclick="showAdvice()">
-          Advice
-        </li>
-      </ul>
     </div>
   </div>
 
   <!-- Main Content -->
   <div class="main-container">
-    <h1 class="main-title">Record &amp; Save Video</h1>
+    <h1 class="main-title">EyeWitness</h1>
     <!-- Video Preview -->
     <video id="videoPreview" class="video-preview" autoplay muted></video>
     <!-- Recording Buttons -->
     <button id="startBtn" class="btn btn-start" onclick="startRecording()">Start Recording</button>
     <button id="stopBtn" class="btn btn-stop" onclick="stopRecording()" disabled>
-      Stop & Save
+      Stop Recording
     </button>
   </div>
 
   <!-- Hidden file explorer input -->
   <input type="file" id="localPathInput" webkitdirectory directory multiple class="hidden">
 
-
-
   <!-- Import external JavaScript -->
   <script src="/static/js/script.js"></script>
+  <script>
+    // Register service worker for PWA functionality
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log('Service worker registered'))
+          .catch(err => console.log('Service worker not registered', err));
+      });
+    }
+  </script>
 </body>
 </html>
