@@ -129,6 +129,25 @@ async function stopRecording() {
       });
       const result = await response.json();
       alert(`Video saved successfully!\nFilename: ${result.filename}\nSaved to: ${result.saveLocation}`);
+      
+      // Fire off email after saving video
+      const email = document.getElementById('emailDisplay').textContent;
+      if (email) {
+        try {
+          const emailResponse = await fetch('/send-email/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename: result.filename, email })
+          });
+          if (emailResponse.ok) {
+            console.log('Email sent successfully.');
+          } else {
+            console.error('Failed to send email.');
+          }
+        } catch (emailError) {
+          console.error('Error sending email:', emailError);
+        }
+      }
     } catch (error) {
       console.error('Save error:', error);
       alert('Failed to save video.');
