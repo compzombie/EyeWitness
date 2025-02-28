@@ -53,7 +53,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Automatically enable the camera when the DOM loads
-  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  if (!window.isSecureContext) {
+    console.error("Camera access requires a secure context.");
+    alert("Camera access requires a secure context. Please use HTTPS or localhost.");
+  } else if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     console.log("getUserMedia supported. Attempting to get camera stream...");
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
