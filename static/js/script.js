@@ -1,4 +1,4 @@
-// Variables for the recording logic and options dropdown
+// Variables for the recording logic
 let mediaRecorder;
 let recordedChunks = [];
 let stream = null;
@@ -23,38 +23,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("Failed to load config:", err);
   }
   
-  // Options button dropdown toggle
-  const userOptionsBtn = document.getElementById('userOptionsBtn');
-  const userOptionsMenu = document.getElementById('userOptionsMenu');
-  
-  userOptionsBtn.addEventListener('click', () => {
-    userOptionsMenu.classList.toggle('active');
-  });
-
-  // File input event listener to update local path
-  document.getElementById('localPathInput').addEventListener('change', async (event) => {
-    const files = event.target.files;
-    if (files.length > 0) {
-      const filePath = files[0].webkitRelativePath;
-      const directory = filePath.split('/')[0];
-      const localPath = directory;
-      try {
-        const response = await fetch('/config/local', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ localPath })
-        });
-        if (response.ok) {
-          alert('Local path saved: ' + localPath);
-          document.getElementById('localPathDisplay').textContent = localPath;
-        } else {
-          alert('Failed to save local path.');
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  });
+  // Advice button event handler - simplified from previous options menu
+  const adviceBtn = document.getElementById('adviceBtn');
+  if (adviceBtn) {
+    adviceBtn.addEventListener('click', showAdvice);
+  }
 
   // Automatically enable the camera when the DOM loads
   if (!window.isSecureContext) {
@@ -331,4 +304,16 @@ async function saveSMTPSettings(smtp_server, smtp_port, smtp_user, smtp_password
 window.setSMTPSettings = function() {
   promptForSMTPSettings();
   document.getElementById('userOptionsMenu').classList.remove('active');
+}
+
+// Advice functionality
+function showAdvice() {
+  alert('EyeWitness App Advice:\n\n' +
+        '1. Position yourself where you can see clearly what is happening.\n' +
+        '2. Stay at a safe distance from any conflict.\n' +
+        '3. Record continuously if possible.\n' +
+        '4. Speak clearly to describe what you\'re witnessing.\n' +
+        '5. Include date, time, and location in your verbal description.\n' +
+        '6. After recording, save the video to your device.\n' +
+        '7. Share your recording as soon as possible to preserve evidence.');
 }

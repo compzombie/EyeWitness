@@ -1,46 +1,11 @@
-from fastapi import FastAPI, UploadFile, File, Request, Form
+from fastapi import FastAPI, UploadFile, File, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse
-from fastapi.templating import Jinja2Templates
 import uvicorn
 import os
-import json
-from pydantic import BaseModel
-from typing import Optional
 
 # Initialize FastAPI app
 app = FastAPI()
-
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config", "config.json")
-os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
-
-class Config(BaseModel):
-    localPath: Optional[str] = None
-    email: Optional[str] = None
-
-def read_config():
-    if os.path.exists(CONFIG_PATH):
-        with open(CONFIG_PATH, "r") as f:
-            return json.load(f)
-    return {}
-
-def write_config(data: dict):
-    with open(CONFIG_PATH, "w") as f:
-        json.dump(data, f)
-
-@app.get("/config/local")
-def get_local_config():
-    return read_config()
-
-@app.post("/config/local")
-def set_local_config(cfg: Config):
-    config = read_config()
-    if cfg.localPath is not None:
-        config["localPath"] = cfg.localPath
-    if cfg.email is not None:
-        config["email"] = cfg.email
-    write_config(config)
-    return {"status": "success", "localPath": config.get("localPath", ""), "email": config.get("email", "")}
 
 # Setup static file serving for assets (CSS, JS, etc.)
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -63,9 +28,8 @@ async def service_worker():
 # Add a public video access endpoint so videos can be shared
 @app.get("/videos/{filename}")
 async def get_video(filename: str):
-    config = read_config()
-    save_dir = config.get("localPath", "static/uploads")
-    file_path = os.path.join(save_dir, filename)
+    # Simple fixed path for videos
+    file_path = os.path.join("static/uploads", filename)
     
     if not os.path.exists(file_path):
         return {"error": "File not found"}
@@ -76,14 +40,14 @@ async def get_video(filename: str):
         filename=filename
     )
 
-# Simplified save endpoint for better mobile compatibility
+# Simplified save endpoint with no configuration needed
 @app.post("/save/")
 async def save_video(file: UploadFile = File(...)):
     try:
         # Create uploads directory if it doesn't exist
         os.makedirs("static/uploads", exist_ok=True)
         
-        # Save file to a consistent location that the app can access
+        # Save file to a consistent location
         file_location = os.path.join("static/uploads", file.filename)
         
         with open(file_location, "wb") as buffer:
@@ -103,6 +67,5 @@ async def save_video(file: UploadFile = File(...)):
         return {"error": str(e)}
 
 if __name__ == "__main__":
-    # Get the PORT from environment variable for Google Cloud Run compatibility
     port = int(os.environ.get("PORT", 8080))
     uvicorn.run(app, host="0.0.0.0", port=port)
