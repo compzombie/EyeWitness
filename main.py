@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Request
+from fastapi import FastAPI, UploadFile, File, Request, Form
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.templating import Jinja2Templates
@@ -6,7 +6,7 @@ import uvicorn
 import os
 import json
 from pydantic import BaseModel
-from typing import Optional  # new import
+from typing import Optional
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -60,7 +60,23 @@ async def manifest():
 async def service_worker():
     return FileResponse("static/service-worker.js")
 
-# Video Save Endpoint
+# Add a public video access endpoint so videos can be shared
+@app.get("/videos/{filename}")
+async def get_video(filename: str):
+    config = read_config()
+    save_dir = config.get("localPath", "static/uploads")
+    file_path = os.path.join(save_dir, filename)
+    
+    if not os.path.exists(file_path):
+        return {"error": "File not found"}
+        
+    return FileResponse(
+        file_path, 
+        media_type="video/webm",
+        filename=filename
+    )
+
+# Simplified save endpoint that also returns sharing URL
 @app.post("/save/")
 async def save_video(file: UploadFile = File(...)):
     # Read configured path, defaulting to "static/uploads"
@@ -68,20 +84,20 @@ async def save_video(file: UploadFile = File(...)):
     save_dir = config.get("localPath", "static/uploads")
     file_location = os.path.join(save_dir, file.filename)
     os.makedirs(os.path.dirname(file_location), exist_ok=True)
+    
     with open(file_location, "wb") as buffer:
         buffer.write(await file.read())
-    return {"filename": file.filename, "message": "Video saved successfully.", "saveLocation": file_location}
-
-# Email Sending Endpoint (Simulated)
-@app.post("/send-email/")
-async def send_email(payload: dict):
-    email = payload.get("email")
-    filename = payload.get("filename")
-    if not email or not filename:
-        return {"status": "error", "message": "Missing email or filename."}
-    # Simulate email sending logic
-    print(f"Simulating sending email to {email} for file {filename}")
-    return {"status": "success", "message": "Email sent (simulated)."}
+    
+    # Generate sharing URL
+    base_url = "http://localhost:8080" if __name__ == "__main__" else ""
+    share_url = f"{base_url}/videos/{file.filename}"
+    
+    return {
+        "filename": file.filename, 
+        "message": "Video saved successfully.", 
+        "saveLocation": file_location,
+        "shareUrl": share_url
+    }
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="localhost", port=8080)
+    uvicorn.run(app, host="0.0.0.0", port=8080)

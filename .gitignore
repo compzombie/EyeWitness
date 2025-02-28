@@ -119,3 +119,4 @@
 .vscode/chrome-old-user-data/ShaderCache/data_1
 .vscode/chrome-old-user-data/ShaderCache/index
 __pycache__/main.cpython-312.pyc
+config/config.json

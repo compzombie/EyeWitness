@@ -15,6 +15,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (config.email) {
       document.getElementById('emailDisplay').textContent = config.email;
     }
+    // Check if SMTP is configured
+    if (!config.smtp_server || !config.smtp_port || !config.smtp_user || !config.smtp_password) {
+      promptForSMTPSettings();
+    }
   } catch (err) {
     console.error("Failed to load config:", err);
   }
@@ -113,52 +117,119 @@ async function startRecording() {
   document.getElementById('stopBtn').disabled = false;
 }
 
-// Stop recording and save the recorded video
+// Modified stopRecording function to prioritize file sharing and local access
 async function stopRecording() {
   if (!mediaRecorder) return;
   mediaRecorder.stop();
   mediaRecorder.onstop = async () => {
     const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    const timestamp = Date.now();
+    const filename = `recording_${timestamp}.webm`;
+    
+    // Create a File object from the blob for sharing
+    const videoFile = new File([blob], filename, { type: 'video/webm' });
+    
+    // Create form data for saving the video
     const formData = new FormData();
-    const filename = `recording_${Date.now()}.webm`;
     formData.append('file', blob, filename);
+    
     try {
-      const response = await fetch('/save/', { // updated endpoint URL
+      const response = await fetch('/save/', {
         method: 'POST',
         body: formData,
       });
       const result = await response.json();
-      alert(`Video saved successfully!\nFilename: ${result.filename}\nSaved to: ${result.saveLocation}`);
       
-      // Fire off email after saving video
-      const email = document.getElementById('emailDisplay').textContent;
-      if (email && email.includes('@')) {
+      // Get local path to include in the message
+      const config = await fetch('/config/local').then(res => res.json());
+      const localPath = config.localPath || "static/uploads";
+      
+      // Show success message with LOCAL file path for offline access
+      alert(`Video saved successfully!\nFilename: ${result.filename}\nLocal storage location: ${localPath}/${filename}\n\nYou can find this video in your local storage if sharing fails.`);
+      
+      // Try to share the file using the Web Share API
+      if (navigator.canShare && navigator.canShare({ files: [videoFile] })) {
         try {
-          const emailResponse = await fetch(`${window.location.origin}/send-email/`, { // using fully qualified URL
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename: result.filename, email })
+          await navigator.share({
+            title: 'EyeWitness Video Recording',
+            text: 'Video recording from EyeWitness app',
+            files: [videoFile]
           });
-          const emailResult = await emailResponse.json();
-          if (emailResponse.ok) {
-            console.log('Email sent successfully:', emailResult);
-          } else {
-            console.error('Failed to send email:', emailResult);
-          }
-        } catch (emailError) {
-          console.error('Error sending email:', emailError);
+          console.log('Video file shared successfully');
+        } catch (shareError) {
+          console.error('Error sharing video file:', shareError);
+          alert('Sharing failed. Your video is still saved locally at:\n' + 
+                `${localPath}/${filename}`);
         }
       } else {
-        console.error('Invalid email address:', email);
+        // Web Share API with file not supported
+        console.log('File sharing not supported');
+        alert('This device cannot directly share files. Your video is saved locally at:\n' + 
+              `${localPath}/${filename}`);
+              
+        // On supported devices, try to share url as fallback
+        if (navigator.share) {
+          if (confirm('Would you like to try sharing a link to the video instead?')) {
+            try {
+              await navigator.share({
+                title: 'EyeWitness Video Recording',
+                text: 'Video recording from EyeWitness app',
+                url: result.shareUrl
+              });
+            } catch (urlShareError) {
+              console.error('URL sharing failed:', urlShareError);
+            }
+          }
+        }
       }
     } catch (error) {
-      console.error('Save error:', error);
-      alert('Failed to save video.');
+      console.error('Error saving video:', error);
+      alert('Failed to save video to server, but it may be available in memory. Please try again.');
     }
+    
     // Reset button states
     document.getElementById('startBtn').disabled = false;
     document.getElementById('stopBtn').disabled = true;
   };
+}
+
+// Helper function to handle URL sharing fallback
+async function tryShareUrl(shareUrl, filename) {
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'EyeWitness Video Recording',
+        text: 'Check out this video recording',
+        url: shareUrl
+      });
+      console.log('Video URL shared successfully');
+    } catch (shareError) {
+      console.error('Error sharing video URL:', shareError);
+      
+      // If sharing fails, ask if user wants to email the video
+      handleEmailFallback(shareUrl);
+    }
+  } else {
+    // On desktop or without share capability, show download link
+    const downloadLink = document.createElement('a');
+    downloadLink.href = shareUrl;
+    downloadLink.download = filename;
+    downloadLink.target = "_blank";
+    downloadLink.click();
+    
+    // Also send email notification if email is configured
+    handleEmailFallback(shareUrl);
+  }
+}
+
+// Helper function to handle email fallback
+function handleEmailFallback(shareUrl) {
+  const email = document.getElementById('emailDisplay').textContent;
+  if (email) {
+    if (confirm('Would you like to email this video to yourself?')) {
+      window.open(`mailto:${email}?subject=EyeWitness Recording&body=Your recording is available at ${window.location.origin}${shareUrl}`);
+    }
+  }
 }
 
 // Option Menu methods exposed globally if needed
@@ -238,4 +309,56 @@ window.setEmailPath = async function() {
       console.error(err);
     }
   }
+}
+
+// Function to prompt user for SMTP settings
+function promptForSMTPSettings() {
+  // Provide more detailed instructions, especially for Gmail users
+  alert("SMTP Setup Instructions:\n\n" +
+        "For Gmail users:\n" + 
+        "1. You need to use an 'App Password' instead of your regular password\n" +
+        "2. Go to https://myaccount.google.com/apppasswords\n" +
+        "3. Generate a new app password for 'Mail'\n" +
+        "4. Use that 16-character code as your password below");
+  
+  const smtp_server = prompt("Enter SMTP server (e.g., smtp.gmail.com):");
+  if (!smtp_server) return;
+  
+  const smtp_port = prompt("Enter SMTP port (e.g., 587):");
+  if (!smtp_port) return;
+  
+  const smtp_user = prompt("Enter SMTP username (your email address):");
+  if (!smtp_user) return;
+  
+  const smtp_password = prompt("Enter SMTP password (for Gmail, use App Password):");
+  if (!smtp_password) return;
+  
+  // Save SMTP settings
+  saveSMTPSettings(smtp_server, parseInt(smtp_port), smtp_user, smtp_password);
+}
+
+// Function to save SMTP settings
+async function saveSMTPSettings(smtp_server, smtp_port, smtp_user, smtp_password) {
+  try {
+    const response = await fetch('/config/smtp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ smtp_server, smtp_port, smtp_user, smtp_password })
+    });
+    
+    if (response.ok) {
+      alert('SMTP settings saved successfully.');
+    } else {
+      alert('Failed to save SMTP settings.');
+    }
+  } catch (err) {
+    console.error('Error saving SMTP settings:', err);
+    alert('Error saving SMTP settings.');
+  }
+}
+
+// Add a new function for SMTP settings to the window object
+window.setSMTPSettings = function() {
+  promptForSMTPSettings();
+  document.getElementById('userOptionsMenu').classList.remove('active');
 }
