@@ -88,16 +88,13 @@ async def save_video(file: UploadFile = File(...)):
     with open(file_location, "wb") as buffer:
         buffer.write(await file.read())
     
-    # Generate sharing URL
-    base_url = "http://localhost:8080" if __name__ == "__main__" else ""
-    share_url = f"{base_url}/videos/{file.filename}"
-    
     return {
         "filename": file.filename, 
         "message": "Video saved successfully.", 
         "saveLocation": file_location,
-        "shareUrl": share_url
     }
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    # Get the PORT from environment variable for Google Cloud Run compatibility
+    port = int(os.environ.get("PORT", 8080))
+    uvicorn.run(app, host="0.0.0.0", port=port)
