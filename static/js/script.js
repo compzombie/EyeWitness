@@ -132,21 +132,24 @@ async function stopRecording() {
       
       // Fire off email after saving video
       const email = document.getElementById('emailDisplay').textContent;
-      if (email) {
+      if (email && email.includes('@')) {
         try {
-          const emailResponse = await fetch('/send-email/', {
+          const emailResponse = await fetch(`${window.location.origin}/send-email/`, { // using fully qualified URL
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ filename: result.filename, email })
           });
+          const emailResult = await emailResponse.json();
           if (emailResponse.ok) {
-            console.log('Email sent successfully.');
+            console.log('Email sent successfully:', emailResult);
           } else {
-            console.error('Failed to send email.');
+            console.error('Failed to send email:', emailResult);
           }
         } catch (emailError) {
           console.error('Error sending email:', emailError);
         }
+      } else {
+        console.error('Invalid email address:', email);
       }
     } catch (error) {
       console.error('Save error:', error);

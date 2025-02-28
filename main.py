@@ -72,5 +72,16 @@ async def save_video(file: UploadFile = File(...)):
         buffer.write(await file.read())
     return {"filename": file.filename, "message": "Video saved successfully.", "saveLocation": file_location}
 
+# Email Sending Endpoint (Simulated)
+@app.post("/send-email/")
+async def send_email(payload: dict):
+    email = payload.get("email")
+    filename = payload.get("filename")
+    if not email or not filename:
+        return {"status": "error", "message": "Missing email or filename."}
+    # Simulate email sending logic
+    print(f"Simulating sending email to {email} for file {filename}")
+    return {"status": "success", "message": "Email sent (simulated)."}
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(app, host="localhost", port=8080)
