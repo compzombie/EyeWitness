@@ -83,9 +83,13 @@ For other platforms, ensure the `PORT` environment variable is set or modify the
 
 ## Future Enhancements
 
-- End-to-end encryption for video files
-- Metadata embedding (timestamp, GPS location)
-- Improved video compression
+Enhance Metadata: Add visible timestamps, GPS coordinates, and device identifiers directly into the video frame
+
+Maximize Distribution: Implement one-tap sending to multiple destinations (email, cloud storage, trusted contacts)
+
+Implement Checksums: Generate and distribute simple hash values alongside videos for basic tamper detection
+
+Encourage Documentation: Prompt users to verbally describe date, time, location in the recording itself
 
 ## About the Project
 
