@@ -28,13 +28,21 @@
   <!-- Main Content -->
   <div class="main-container">
     <h1 class="main-title">EyeWitness</h1>
-    <!-- Video Preview -->
-    <video id="videoPreview" class="video-preview" autoplay muted></video>
+    
+    <!-- Video Preview with Recording Indicator -->
+    <div class="video-container">
+      <div class="recording-border" id="videoBorder">
+        <video id="videoPreview" class="video-preview" autoplay muted></video>
+        <div class="recording-indicator" id="recordingDot"></div>
+      </div>
+    </div>
+    
     <!-- Recording Buttons -->
     <button id="startBtn" class="btn btn-start" onclick="startRecording()">Start Recording</button>
-    <button id="stopBtn" class="btn btn-stop" onclick="stopRecording()" disabled>
-      Stop Recording
-    </button>
+    <button id="stopBtn" class="btn btn-stop" onclick="stopRecording()" disabled>Stop Recording</button>
+    
+    <!-- New Share Again Button (initially hidden) -->
+    <button id="shareAgainBtn" class="btn btn-share" onclick="shareLastRecording()">Share Video Again</button>
   </div>
 
   <!-- Hidden file explorer input -->

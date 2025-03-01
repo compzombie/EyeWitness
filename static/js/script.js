@@ -2,6 +2,7 @@
 let mediaRecorder;
 let recordedChunks = [];
 let stream = null;
+let lastRecordedVideo = null; // Store the last recorded video for re-sharing
 
 // DOMContentLoaded handler for initial setup and event binding.
 document.addEventListener("DOMContentLoaded", async () => {
@@ -72,16 +73,33 @@ async function startRecording() {
   // Update button states
   document.getElementById('startBtn').disabled = true;
   document.getElementById('stopBtn').disabled = false;
+  document.getElementById('shareAgainBtn').classList.remove('active');
+  
+  // Show recording indicators
+  document.getElementById('recordingDot').classList.add('active');
+  document.getElementById('videoBorder').classList.add('active');
 }
 
-// Modified stopRecording function with simpler mobile-first approach
+// Stop recording and save the recorded video
 async function stopRecording() {
   if (!mediaRecorder) return;
   mediaRecorder.stop();
   mediaRecorder.onstop = async () => {
     try {
+      // Hide recording indicators
+      document.getElementById('recordingDot').classList.remove('active');
+      document.getElementById('videoBorder').classList.remove('active');
+      
       const blob = new Blob(recordedChunks, { type: 'video/webm' });
-      const filename = `recording_${Date.now()}.webm`;
+      const timestamp = Date.now();
+      const filename = `recording_${timestamp}.webm`;
+      
+      // Store for potential resharing
+      lastRecordedVideo = {
+        blob: blob,
+        filename: filename,
+        timestamp: timestamp
+      };
       
       // Create a File object from the blob for sharing
       const videoFile = new File([blob], filename, { type: 'video/webm' });
@@ -103,33 +121,11 @@ async function stopRecording() {
       
       console.log('Video saved successfully on server:', result);
       
+      // Show the share again button since we have a video stored
+      document.getElementById('shareAgainBtn').classList.add('active');
+      
       // Try to share using native sharing
-      if (navigator.canShare && navigator.canShare({ files: [videoFile] })) {
-        try {
-          await navigator.share({
-            files: [videoFile],
-            title: 'EyeWitness Recording',
-            text: 'Video recording from EyeWitness app'
-          });
-          alert('Video shared successfully!');
-        } catch (shareError) {
-          console.error('Error sharing:', shareError);
-          
-          // If share fails, try to download the file directly
-          const downloadLink = document.createElement('a');
-          downloadLink.href = URL.createObjectURL(blob);
-          downloadLink.download = filename;
-          downloadLink.click();
-          alert('Video saved to your downloads.');
-        }
-      } else {
-        // If share API not available, use download
-        const downloadLink = document.createElement('a');
-        downloadLink.href = URL.createObjectURL(blob);
-        downloadLink.download = filename;
-        downloadLink.click();
-        alert('Video saved to your downloads.');
-      }
+      await shareVideo(videoFile, filename);
     } catch (error) {
       console.error('Error processing video:', error);
       alert('Error: ' + error.message);
@@ -139,6 +135,58 @@ async function stopRecording() {
     document.getElementById('startBtn').disabled = false;
     document.getElementById('stopBtn').disabled = true;
   };
+}
+
+// New function to share the last recorded video again
+async function shareLastRecording() {
+  if (!lastRecordedVideo) {
+    alert("No video available to share!");
+    return;
+  }
+  
+  try {
+    const videoFile = new File(
+      [lastRecordedVideo.blob], 
+      lastRecordedVideo.filename, 
+      { type: 'video/webm' }
+    );
+    
+    await shareVideo(videoFile, lastRecordedVideo.filename);
+  } catch (error) {
+    console.error('Error sharing video:', error);
+    alert('Error sharing: ' + error.message);
+  }
+}
+
+// Extracted sharing logic to a separate function for reuse
+async function shareVideo(videoFile, filename) {
+  // Try to share using native sharing
+  if (navigator.canShare && navigator.canShare({ files: [videoFile] })) {
+    try {
+      await navigator.share({
+        files: [videoFile],
+        title: 'EyeWitness Recording',
+        text: 'Video recording from EyeWitness app'
+      });
+      alert('Video shared successfully!');
+    } catch (shareError) {
+      console.error('Error sharing:', shareError);
+      
+      // If share fails, try to download the file directly
+      const downloadLink = document.createElement('a');
+      downloadLink.href = URL.createObjectURL(videoFile.blob || videoFile);
+      downloadLink.download = filename;
+      downloadLink.click();
+      alert('Video saved to your downloads.');
+    }
+  } else {
+    // If share API not available, use download
+    const downloadLink = document.createElement('a');
+    downloadLink.href = URL.createObjectURL(videoFile.blob || videoFile);
+    downloadLink.download = filename;
+    downloadLink.click();
+    alert('Video saved to your downloads.');
+  }
 }
 
 // Helper function to handle URL sharing fallback

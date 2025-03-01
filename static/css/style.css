@@ -146,3 +146,69 @@ body {
   .hidden {
     display: none;
   }
+
+/* --- Recording Status Indicators --- */
+.recording-indicator {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background-color: #e53e3e; /* Red when recording */
+  display: none;
+}
+
+.recording-indicator.active {
+  display: block;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.recording-border {
+  border: 2px solid transparent;
+  border-radius: 0.5rem;
+  transition: border-color 0.3s ease;
+}
+
+.recording-border.active {
+  border-color: #e53e3e; /* Red border when recording */
+}
+
+/* --- Share Again Button --- */
+.btn-share {
+  background-color: #38a169; /* Green-600 */
+  color: #fff;
+  font-weight: 600;
+  width: 100%;
+  margin-top: 0.5rem;
+  display: none;
+}
+
+.btn-share.active {
+  display: block;
+}
+
+.btn-share:hover {
+  background-color: #2f855a; /* Green-700 */
+}
