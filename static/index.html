@@ -44,12 +44,15 @@
       </div>
     </div>
     
-    <!-- Recording Buttons -->
-    <button id="startBtn" class="btn btn-start" onclick="startRecording()">Start Recording</button>
-    <button id="stopBtn" class="btn btn-stop" onclick="stopRecording()" disabled>Stop Recording</button>
-    
-    <!-- New Share Again Button (initially hidden) -->
-    <button id="shareAgainBtn" class="btn btn-share" onclick="shareLastRecording()">Share Video Again</button>
+    <!-- Wrap buttons in a container for better spacing -->
+    <div class="button-container">
+      <!-- Recording Buttons -->
+      <button id="startBtn" class="btn btn-start" onclick="startRecording()">Start Recording</button>
+      <button id="stopBtn" class="btn btn-stop" onclick="stopRecording()" disabled>Stop Recording</button>
+      
+      <!-- Share Again Button (initially hidden) -->
+      <button id="shareAgainBtn" class="btn btn-share" onclick="shareLastRecording()">Share Video Again</button>
+    </div>
   </div>
 
   <!-- Hidden file explorer input -->
