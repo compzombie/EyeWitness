@@ -81,15 +81,6 @@ For other platforms, ensure the `PORT` environment variable is set or modify the
 6. After recording, save the video to your device
 7. Share your recording as soon as possible to preserve evidence
 
-## Future Enhancements
-
-Enhance Metadata: Add visible timestamps, GPS coordinates, and device identifiers directly into the video frame
-
-Maximize Distribution: Implement one-tap sending to multiple destinations (email, cloud storage, trusted contacts)
-
-Implement Checksums: Generate and distribute simple hash values alongside videos for basic tamper detection
-
-Encourage Documentation: Prompt users to verbally describe date, time, location in the recording itself
 
 ## About the Project
 
