@@ -3,6 +3,7 @@ let mediaRecorder;
 let recordedChunks = [];
 let stream = null;
 let lastRecordedVideo = null; // Store the last recorded video for re-sharing
+let currentFacingMode = 'environment'; // Default to rear camera
 
 // DOMContentLoaded handler for initial setup and event binding
 document.addEventListener("DOMContentLoaded", async () => {
@@ -11,33 +12,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (adviceBtn) {
     adviceBtn.addEventListener('click', showAdvice);
   }
-
-  // Automatically enable the camera when the DOM loads
-  if (!window.isSecureContext) {
-    console.error("Camera access requires a secure context.");
-    alert("Camera access requires a secure context. Please use HTTPS or localhost.");
-  } else if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    console.log("getUserMedia supported. Attempting to get camera stream...");
-    try {
-      // Set video constraints to prefer rear camera on mobile devices
-      const constraints = { 
-        video: {
-          facingMode: { ideal: "environment" }  // Prefer rear camera
-        }, 
-        audio: true 
-      };
-      
-      stream = await navigator.mediaDevices.getUserMedia(constraints);
-      document.getElementById('videoPreview').srcObject = stream;
-      console.log("Camera stream obtained.");
-    } catch (err) {
-      console.error('Camera access was denied or failed:', err);
-      alert("Failed to access camera. Check your device permissions.");
-    }
-  } else {
-    console.error('Media Devices API or getUserMedia is not supported.');
-    alert('Your device does not support camera access via getUserMedia.');
+  
+  // Camera switch button event handler
+  const switchCameraBtn = document.getElementById('switchCameraBtn');
+  if (switchCameraBtn) {
+    switchCameraBtn.addEventListener('click', switchCamera);
   }
+
+  // Start with the rear camera
+  await initializeCamera('environment');
 
   // Service Worker registration for PWA functionality
   if ('serviceWorker' in navigator) {
@@ -46,6 +29,67 @@ document.addEventListener("DOMContentLoaded", async () => {
       .catch(err => console.error('Service Worker registration failed:', err));
   }
 });
+
+// Initialize camera with specified facing mode
+async function initializeCamera(facingMode) {
+  if (!window.isSecureContext) {
+    console.error("Camera access requires a secure context.");
+    alert("Camera access requires a secure context. Please use HTTPS or localhost.");
+    return;
+  }
+  
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    console.log(`Attempting to get camera stream with facing mode: ${facingMode}`);
+    
+    try {
+      // Stop any existing stream
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      
+      // Set video constraints with specified facing mode
+      const constraints = { 
+        video: {
+          facingMode: { ideal: facingMode }
+        }, 
+        audio: true 
+      };
+      
+      // Get the new stream
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      document.getElementById('videoPreview').srcObject = stream;
+      console.log(`Camera stream obtained with facing mode: ${facingMode}`);
+      
+      // Update current facing mode
+      currentFacingMode = facingMode;
+    } catch (err) {
+      console.error('Camera access was denied or failed:', err);
+      alert("Failed to access camera. Check your device permissions.");
+    }
+  } else {
+    console.error('Media Devices API or getUserMedia is not supported.');
+    alert('Your device does not support camera access via getUserMedia.');
+  }
+}
+
+// Switch between front and rear cameras
+async function switchCamera() {
+  console.log("Switching camera...");
+  
+  // Toggle facing mode
+  const newFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+  
+  // Show loading indicator or disable button here if needed
+  
+  try {
+    // Initialize new camera
+    await initializeCamera(newFacingMode);
+    console.log(`Camera switched to ${newFacingMode} facing mode`);
+  } catch (error) {
+    console.error('Failed to switch camera:', error);
+    alert('Failed to switch camera. Your device might not support multiple cameras.');
+  }
+}
 
 // Start recording using the global "stream" variable
 async function startRecording() {

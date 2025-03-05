@@ -230,3 +230,35 @@ body {
   width: 400px;
   border-radius: 1rem;
 }
+
+/* Camera Switch Button */
+.btn-switch-camera {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  width: 36px;
+  height: 36px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: background-color 0.2s;
+}
+
+.btn-switch-camera:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.btn-switch-camera:active {
+  transform: scale(0.95);
+}
+
+.btn-switch-camera svg {
+  width: 22px;
+  height: 22px;
+}
