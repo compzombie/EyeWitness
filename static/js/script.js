@@ -111,6 +111,10 @@ async function startRecording() {
   document.getElementById('stopBtn').disabled = false;
   document.getElementById('shareAgainBtn').classList.remove('active');
   
+  // Disable camera switching during recording
+  document.getElementById('switchCameraBtn').disabled = true;
+  document.getElementById('switchCameraBtn').classList.add('disabled');
+  
   // Show recording indicators
   document.getElementById('recordingDot').classList.add('active');
   document.getElementById('videoBorder').classList.add('active');
@@ -125,6 +129,10 @@ async function stopRecording() {
       // Hide recording indicators
       document.getElementById('recordingDot').classList.remove('active');
       document.getElementById('videoBorder').classList.remove('active');
+      
+      // Re-enable camera switching
+      document.getElementById('switchCameraBtn').disabled = false;
+      document.getElementById('switchCameraBtn').classList.remove('disabled');
       
       const blob = new Blob(recordedChunks, { type: 'video/webm' });
       const timestamp = Date.now();
